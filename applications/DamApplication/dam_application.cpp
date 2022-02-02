@@ -184,6 +184,8 @@ void KratosDamApplication::Register()
     Serializer::Register("JointCohesionDriven2DLaw",mJointCohesionDriven2DLaw);
     Serializer::Register("JointStressDriven3DLaw",mJointStressDriven3DLaw);
     Serializer::Register("JointStressDriven2DLaw",mJointStressDriven2DLaw);
+    Serializer::Register("JointBilinearCohesive3DLaw",mJointBilinearCohesive3DLaw);
+    Serializer::Register("JointBilinearCohesive2DLaw",mJointBilinearCohesive2DLaw);
 
     //Register Variables
     KRATOS_REGISTER_VARIABLE( TIME_UNIT_CONVERTER )
@@ -227,6 +229,8 @@ void KratosDamApplication::Register()
     KRATOS_REGISTER_VARIABLE( MAX_COMPRESSIVE_STRESS )
     KRATOS_REGISTER_VARIABLE( MAX_TENSILE_STRESS )
     KRATOS_REGISTER_VARIABLE( COHESION )
+    KRATOS_REGISTER_VARIABLE( CRITICAL_DISPLACEMENT_TANGENT )
+    KRATOS_REGISTER_VARIABLE( YIELD_STRESS_TANGENT )
 
     // Uplift
     KRATOS_REGISTER_VARIABLE( UPLIFT_PRESSURE )

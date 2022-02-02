@@ -42,6 +42,8 @@
 #include "custom_constitutive/joint_cohesion_driven_2D_law.hpp"
 #include "custom_constitutive/joint_stress_driven_3D_law.hpp"
 #include "custom_constitutive/joint_stress_driven_2D_law.hpp"
+#include "custom_constitutive/joint_bilinear_cohesive_3D_law.hpp"
+#include "custom_constitutive/joint_bilinear_cohesive_2D_law.hpp"
 
 namespace Kratos
 {
@@ -124,6 +126,12 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
     .def( py::init<>() );
     py::class_< JointStressDriven2DLaw, JointStressDriven2DLaw::Pointer, ConstitutiveLaw >
     (m, "JointStressDriven2DLaw")
+    .def( py::init<>() );
+    py::class_< JointBilinearCohesive3DLaw, JointBilinearCohesive3DLaw::Pointer, ConstitutiveLaw >
+    (m, "JointBilinearCohesive3DLaw")
+    .def( py::init<>() );
+    py::class_< JointBilinearCohesive2DLaw, JointBilinearCohesive2DLaw::Pointer, ConstitutiveLaw >
+    (m, "JointBilinearCohesive2DLaw")
     .def( py::init<>() );
 }
 

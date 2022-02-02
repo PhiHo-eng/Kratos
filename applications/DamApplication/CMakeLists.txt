@@ -54,6 +54,8 @@ set( KRATOS_DAM_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/joint_cohesion_driven_2D_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/joint_stress_driven_3D_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/joint_stress_driven_2D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/joint_bilinear_cohesive_3D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/joint_bilinear_cohesive_2D_law.cpp
 
     # Elements
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement_thermo_mechanic_element.cpp
