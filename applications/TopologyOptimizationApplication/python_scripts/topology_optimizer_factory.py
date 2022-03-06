@@ -111,7 +111,6 @@ class SIMPMethod:
         #spring1_5 = self.opt_model_part.CreateNewElement("NodalConcentratedElement2D1N", 48004, [52], opt_model_part.GetProperties()[1])
        # spring1_6 = self.opt_model_part.CreateNewElement("NodalConcentratedElement2D1N", 48005, [93], opt_model_part.GetProperties()[1])
 
-
         spring2_1 = self.pseudo_model_part.CreateNewElement("NodalConcentratedElement2D1N", 48006, [2246], opt_model_part.GetProperties()[1])
         spring2_2 = self.pseudo_model_part.CreateNewElement("NodalConcentratedElement2D1N", 48007, [2248], opt_model_part.GetProperties()[1])
         #spring2_3 = self.pseudo_model_part.CreateNewElement("NodalConcentratedElement2D1N", 48008, [11393], opt_model_part.GetProperties()[1])

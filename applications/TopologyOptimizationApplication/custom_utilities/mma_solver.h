@@ -131,7 +131,7 @@ class MMAAlgorithm
 
 			g[0] = 0;
 			vol_frac_iteration = vol_summ;
-			g[0] = (vol_frac_iteration - volfrac*nn);
+			g[0] = (vol_frac_iteration -  volfrac*nn);
 
 			double Xminn = 0;
 			double Xmaxx= 1;
