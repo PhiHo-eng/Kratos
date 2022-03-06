@@ -127,27 +127,31 @@ public:
 
             // Update Densities procedure
             double l1    = 0.0;
-            double l2    = 1.0e12; ///10000000000.0
-            const double move    = 0.2;
+            double l2    = 1.0e9; ///10000000000.0
+            const double move    = 0.1;
             double sum_X_Phys;
             int nele;
             double x_new = 0.0;
             double lmid = 0.0;
+            double domain_size;
 
             // Bisection algorithm to find Lagrange Multiplier so that volume constraint is satisfied (lmid)
-            while ((l2-l1)/(l1+l2) > 0.001)
+            while ((l2-l1)/(l1+l2) > 0.0001 && l2 > 1e-40)
+            //while ((l2-l1)/(l1+l2) > 0.001)
             {
                 lmid = 0.5*(l2+l1);
                 sum_X_Phys = 0.0;
                 nele = 0;
                 x_new = 0.0;
+                domain_size = 0.0;
 
                 for( ModelPart::ElementIterator element_i = mrModelPart.ElementsBegin(); element_i!= mrModelPart.ElementsEnd(); element_i++ )
                 {
                     const double x_old = element_i->GetValue(X_PHYS_OLD);
                     const int solid_void = element_i->GetValue(SOLID_VOID);
-                    const double dcdx  = element_i->GetValue(DCDX);
+                    const double dcdx  = element_i->GetValue(DCDX_COMPLIANT);
                     const double dvdx  = element_i->GetValue(DVDX);
+                    const double initial_volume = element_i->GetValue(INITIAL_ELEMENT_SIZE);
 
                     // Update Density
                     // When q = 1, Grey Scale Filter is not activated, i.e., the results are in the classical OC update method
@@ -156,7 +160,9 @@ public:
                     // NORMAL elements
                     case 0:
                     {
-                        x_new = std::max(0.0, std::max(x_old - move, std::min(1.0, pow(std::min(x_old + move, x_old * sqrt(-dcdx/dvdx/lmid)),q))));
+                        //x_new = std::max(0.0, std::max(x_old - move, std::min(1.0, pow(std::min(x_old + move, x_old*pow(std::max(1e-10, -dcdx/dvdx/lmid),0.3)),q))));
+                        x_new = std::max(0.1, std::max(x_old - move, std::min(1.0, pow(std::min(x_old + move, pow(x_old *std::max( 1e-5, -dcdx/(dvdx*lmid)),0.3)),q))));
+                        //x_new = std::max(0.0, std::max(x_old - move, std::min(1.0, pow(std::min(x_old + move, x_old * sqrt(-dcdx/dvdx/lmid)),q))));
                         break;
                     }
                     // ACTIVE elements (solid elements)
@@ -183,13 +189,18 @@ public:
 
                     // Updating additional quantities to determine the correct Lagrange Multiplier (lmid)
                     sum_X_Phys = sum_X_Phys + x_new;
+                    domain_size += initial_volume;
                     nele = nele + 1;
                 }
+                KRATOS_INFO("[TopOpt]") << "L1: "<<l1<< " and l2:" << l2<< std::endl;
 
-                if( sum_X_Phys > (volfrac*nele))
+                if(  sum_X_Phys  -(volfrac*nele) > 0)
                     l1=lmid;
+                
+                //if( sum_X_Phys - (volfrac*nele) < 0 )
                 else
                     l2=lmid;
+                
             }
 
             // Printing of results

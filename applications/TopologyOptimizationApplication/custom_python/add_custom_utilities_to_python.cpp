@@ -27,6 +27,7 @@
 #include "custom_utilities/structure_response_function_utilities.h"
 #include "custom_utilities/topology_filtering_utilities.h"
 #include "custom_utilities/topology_updating_utilities.h"
+#include "custom_utilities/mma_solver.h"
 #include "custom_utilities/io_utilities.h"
 
 
@@ -51,6 +52,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     .def(py::init<ModelPart& >())
     .def("ComputeStrainEnergy", &StructureResponseFunctionUtilities::ComputeStrainEnergy)
     .def("ComputeVolumeFraction", &StructureResponseFunctionUtilities::ComputeVolumeFraction)
+    .def("ComputeDisplacement", &StructureResponseFunctionUtilities::ComputeDisplacement)
     ;
 
     py::class_<TopologyFilteringUtilities >(m, "TopologyFilteringUtilities")
@@ -62,6 +64,11 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     py::class_<TopologyUpdatingUtilities >(m, "TopologyUpdatingUtilities")
     .def(py::init<ModelPart&>())
     .def("UpdateDensitiesUsingOCMethod", &TopologyUpdatingUtilities::UpdateDensitiesUsingOCMethod)
+    ;
+    
+    py::class_< MMAAlgorithm >(m, "MMAAlgorithm")
+    .def(py::init<ModelPart&, const int, const int>())
+    .def("UpdateDensitiesUsingMMAAlgorithm", &MMAAlgorithm::UpdateDensitiesUsingMMAAlgorithm)
     ;
 
     py::class_<IOUtilities >(m, "IOUtilities" )

@@ -19,8 +19,10 @@
 
 
 # importing the Kratos Library
+from matplotlib.pyplot import spring
 import KratosMultiphysics as km
 import KratosMultiphysics.TopologyOptimizationApplication as kto
+import KratosMultiphysics.StructuralMechanicsApplication as stm
 import os
 
 # For GID output
@@ -33,8 +35,8 @@ import math
 import time
 
 # ==============================================================================
-def ConstructOptimizer( opt_model_part, config, analyzer ):
-    optimizer = SIMPMethod( opt_model_part, config, analyzer)
+def ConstructOptimizer( opt_model_part, pseudo_model_part, config, analyzer ):
+    optimizer = SIMPMethod( opt_model_part, pseudo_model_part, config, analyzer)
     return optimizer
 
 
@@ -43,7 +45,7 @@ def ConstructOptimizer( opt_model_part, config, analyzer ):
 class SIMPMethod:
 
     # --------------------------------------------------------------------------
-    def __init__(self, opt_model_part, config, analyzer):
+    def __init__(self, opt_model_part, pseudo_model_part, config, analyzer):
 
         # Set Topology Optimization configurations
         self.config = config
@@ -99,9 +101,50 @@ class SIMPMethod:
 
         # Model parameters
         self.opt_model_part = opt_model_part
+        self.pseudo_model_part = pseudo_model_part
+
+
+        spring1_1 = self.opt_model_part.CreateNewElement("NodalConcentratedElement2D1N", 48000, [1], opt_model_part.GetProperties()[1])
+        spring1_2 = self.opt_model_part.CreateNewElement("NodalConcentratedElement2D1N", 48001, [2], opt_model_part.GetProperties()[1])
+        #spring1_3 = self.opt_model_part.CreateNewElement("NodalConcentratedElement2D1N", 48002, [9], opt_model_part.GetProperties()[1])
+        #spring1_4 = self.opt_model_part.CreateNewElement("NodalConcentratedElement2D1N", 48003, [27], opt_model_part.GetProperties()[1])
+        #spring1_5 = self.opt_model_part.CreateNewElement("NodalConcentratedElement2D1N", 48004, [52], opt_model_part.GetProperties()[1])
+       # spring1_6 = self.opt_model_part.CreateNewElement("NodalConcentratedElement2D1N", 48005, [93], opt_model_part.GetProperties()[1])
+
+
+        spring2_1 = self.pseudo_model_part.CreateNewElement("NodalConcentratedElement2D1N", 48006, [2246], opt_model_part.GetProperties()[1])
+        spring2_2 = self.pseudo_model_part.CreateNewElement("NodalConcentratedElement2D1N", 48007, [2248], opt_model_part.GetProperties()[1])
+        #spring2_3 = self.pseudo_model_part.CreateNewElement("NodalConcentratedElement2D1N", 48008, [11393], opt_model_part.GetProperties()[1])
+        #spring2_4 = self.pseudo_model_part.CreateNewElement("NodalConcentratedElement2D1N", 48009, [11408], opt_model_part.GetProperties()[1])
+        #spring2_5 = self.pseudo_model_part.CreateNewElement("NodalConcentratedElement2D1N", 48010, [11421], opt_model_part.GetProperties()[1])
+        #spring2_6 = self.pseudo_model_part.CreateNewElement("NodalConcentratedElement2D1N", 48011, [29430], opt_model_part.GetProperties()[1])
+
+        spring1_1.SetValue(stm.NODAL_DISPLACEMENT_STIFFNESS,[100,0,0])
+        spring1_2.SetValue(stm.NODAL_DISPLACEMENT_STIFFNESS,[100,0,0])
+        #spring1_3.SetValue(stm.NODAL_DISPLACEMENT_STIFFNESS,[1,0,0])
+        #spring1_4.SetValue(stm.NODAL_DISPLACEMENT_STIFFNESS,[1,0,0])
+        #spring1_5.SetValue(stm.NODAL_DISPLACEMENT_STIFFNESS,[1,0,0])
+
+        spring2_1.SetValue(stm.NODAL_DISPLACEMENT_STIFFNESS,[100,0,0])
+        spring2_2.SetValue(stm.NODAL_DISPLACEMENT_STIFFNESS,[100,0,0])
+        #spring2_3.SetValue(stm.NODAL_DISPLACEMENT_STIFFNESS,[1,0,0])
+        #spring2_4.SetValue(stm.NODAL_DISPLACEMENT_STIFFNESS,[1,0,0])
+        #spring2_5.SetValue(stm.NODAL_DISPLACEMENT_STIFFNESS,[1,0,0])
 
         # Initialize element variables
         for element_i in opt_model_part.Elements:
+            element_i.SetValue(kto.PENAL, config["penalty"].GetInt())
+            element_i.SetValue(kto.X_PHYS, config["initial_volume_fraction"].GetDouble())
+            element_i.SetValue(kto.X_PHYS_OLD, config["initial_volume_fraction"].GetDouble())
+            element_i.SetValue(km.YOUNG_MODULUS, opt_model_part.GetProperties()[config["simp_property"].GetInt()].GetValue(km.YOUNG_MODULUS))
+            elemental_volume = element_i.GetGeometry().DomainSize()
+            element_i.SetValue(kto.INITIAL_ELEMENT_SIZE, elemental_volume)
+            #id = element_i.Id
+            #if (id == 1 or id == 41 or id == 81 or id == 121 or id == 161 or id == 201 or id == 1161 or id == 1200 ):
+             #   element_i.SetValue(kto.SOLID_VOID, 1)
+            
+
+        for element_i in pseudo_model_part.Elements:
             element_i.SetValue(kto.PENAL, config["penalty"].GetInt())
             element_i.SetValue(kto.X_PHYS, config["initial_volume_fraction"].GetDouble())
             element_i.SetValue(kto.X_PHYS_OLD, config["initial_volume_fraction"].GetDouble())
@@ -120,7 +163,14 @@ class SIMPMethod:
                                                         self.config["max_elements_in_filter_radius"].GetInt() )
 
         # Add toolbox for topology updating utilities
-        self.design_update_utils = kto.TopologyUpdatingUtilities( opt_model_part )
+        if(self.config["optimization_algorithm"].GetString() == "oc_algorithm"):
+            self.design_update_utils = kto.TopologyUpdatingUtilities( opt_model_part )
+
+        number = opt_model_part.NumberOfElements()
+        m_const = 1
+
+        if(self.config["optimization_algorithm"].GetString() == "mma_algorithm"):
+            self.design_update_utils_mma = kto.MMAAlgorithm(opt_model_part, number, m_const)#, ai, ci,di )
 
         # Add toolbox for I/O
         self.io_utils = kto.IOUtilities()
@@ -142,6 +192,9 @@ class SIMPMethod:
 
         # Call for the specified optimization algorithm
         if(self.config["optimization_algorithm"].GetString() == "oc_algorithm"):
+           self.start_oc_algorithm()
+
+        elif(self.config["optimization_algorithm"].GetString() == "mma_algorithm"):
            self.start_oc_algorithm()
 
         else:
@@ -213,7 +266,7 @@ class SIMPMethod:
 
             # Start measuring time needed for current optimization step
             start_time = time.time()
-
+            
             # Initialize response container
             response = self.controller.create_response_container()
 
@@ -237,8 +290,17 @@ class SIMPMethod:
 
 
             # Update design variables ( densities )  --> new X by:
-            km.Logger.Print("\n[TopOpt]    ::[Update Densities with OC]::")
-            self.design_update_utils.UpdateDensitiesUsingOCMethod( self.config["optimization_algorithm"].GetString(),
+            if(self.config["optimization_algorithm"].GetString() == "oc_algorithm"):
+                km.Logger.Print("\n[TopOpt]:    ::[Update Densities with OC]::")
+                self.design_update_utils.UpdateDensitiesUsingOCMethod( self.config["optimization_algorithm"].GetString(),
+                                                                   self.config["initial_volume_fraction"].GetDouble(),
+                                                                   self.config["grey_scale_filter"].GetInt(),
+                                                                   opt_itr,
+                                                                   self.config["q_max"].GetDouble() )
+
+            if(self.config["optimization_algorithm"].GetString() == "mma_algorithm"):
+                km.Logger.Print("\n[TopOpt]:    ::[Update Densities with MMA]::")
+                self.design_update_utils_mma.UpdateDensitiesUsingMMAAlgorithm( self.config["optimization_algorithm"].GetString(),
                                                                    self.config["initial_volume_fraction"].GetDouble(),
                                                                    self.config["grey_scale_filter"].GetInt(),
                                                                    opt_itr,
@@ -248,12 +310,9 @@ class SIMPMethod:
 
             if (self.config["density_filter"].GetString() == "density"):
                 km.Logger.Print("\n[TopOpt]   ::[Filter Densities]::") 
-                self.filter_utils.ApplyFilterDensity(self.config["density_filter"].GetString() , self.config["filter_kernel"].GetString() )
+                self.filter_utils.ApplyFilterDensity(self.config["density_filter"].GetString() , self.config["filter_kernel"].GetString(), opt_itr )
 
 
-
-
-            
             # Print of results
             km.Logger.Print("\n[TopOpt]:   ::[RESULTS]::")
             Obj_Function = response[only_F_id]["func"]
@@ -318,11 +377,30 @@ class SIMPMethod:
 
                     break
             
-            
+            for element_i in self.pseudo_model_part.Elements:
+                Id = element_i.Id
+                if (Id > 26000 ):
+                    Id = 1
+                element_i.SetValue(kto.X_PHYS, self.opt_model_part.Elements[Id].GetValue(kto.X_PHYS))
 
             # Set X_PHYS_OLD to update the value for the next simulation's "change percentage"
             for element_i in self.opt_model_part.Elements:
-                element_i.SetValue(kto.X_PHYS_OLD, element_i.GetValue(kto.X_PHYS))
+                Id =element_i.Id
+                if (Id < 26000):
+                    Id = 1
+                    element_i.SetValue(kto.X_PHYS_OLD, element_i.GetValue(kto.X_PHYS))
+
+            #self.opt_model_part.Elements[48000].SetValue(stm.NODAL_DISPLACEMENT_STIFFNESS,[100/(opt_itr*3),0,0])
+            #self.opt_model_part.Elements[48001].SetValue(stm.NODAL_DISPLACEMENT_STIFFNESS,[100/(opt_itr*3),0,0])
+
+            #self.pseudo_model_part.Elements[48006].SetValue(stm.NODAL_DISPLACEMENT_STIFFNESS,[100/(opt_itr*3),0,0])
+            #self.pseudo_model_part.Elements[48007].SetValue(stm.NODAL_DISPLACEMENT_STIFFNESS,[100/(opt_itr*3),0,0])
+            #spring1_3.SetValue(stm.NODAL_DISPLACEMENT_STIFFNESS,[1,0,0])
+            #spring1_4.SetValue(stm.NODAL_DISPLACEMENT_STIFFNESS,[1,0,0])
+            #spring1_5.SetValue(stm.NODAL_DISPLACEMENT_STIFFNESS,[1,0,0])
+
+            #spring2_1.SetValue(stm.NODAL_DISPLACEMENT_STIFFNESS,[100,0,0])
+            #spring2_2.SetValue(stm.NODAL_DISPLACEMENT_STIFFNESS,[100,0,0])
 
             # Take time needed for current optimization step
             end_time = time.time()

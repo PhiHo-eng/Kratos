@@ -43,10 +43,13 @@ namespace Kratos
     KRATOS_CREATE_VARIABLE( double, X_PHYS )
     KRATOS_CREATE_VARIABLE( double, X_PHYS_OLD )
     KRATOS_CREATE_VARIABLE( double, DCDX )
+    KRATOS_CREATE_VARIABLE( double, DCDX_COMPLIANT )
     KRATOS_CREATE_VARIABLE( double, DVDX )
     KRATOS_CREATE_VARIABLE( double, SOLID_VOID )
     KRATOS_CREATE_VARIABLE( double, LOCAL_STRAIN_ENERGY )
+    KRATOS_CREATE_VARIABLE( double, LOCAL_STRAIN_ENERGY_COMPLIANT )
     KRATOS_CREATE_VARIABLE( double, INITIAL_ELEMENT_SIZE)
+    KRATOS_CREATE_VARIABLE(Vector, LAMBDA_ADJOINT)
 
     ///we define the node type
 
@@ -58,7 +61,6 @@ namespace Kratos
             mSmallDisplacementSIMPElement3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <NodeType>( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
             mSmallDisplacementSIMPElement3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <NodeType >( Element::GeometryType::PointsArrayType( 4 ) ) ) ),
             mSmallDisplacementSIMPElement3D8N( 0, Element::GeometryType::Pointer( new Hexahedra3D8 <NodeType >( Element::GeometryType::PointsArrayType( 8 ) ) ) ){}
-
 
 
     void KratosTopologyOptimizationApplication::Register()
@@ -74,7 +76,7 @@ namespace Kratos
         //Register small displacement elements
         KRATOS_REGISTER_ELEMENT( "SmallDisplacementSIMPElement3D3N",  mSmallDisplacementSIMPElement3D3N ) // dummy element for surface representation
         KRATOS_REGISTER_ELEMENT( "SmallDisplacementSIMPElement3D4N", mSmallDisplacementSIMPElement3D4N )
-        KRATOS_REGISTER_ELEMENT( "SmallDisplacementSIMPElement3D8N", mSmallDisplacementSIMPElement3D8N )
+        KRATOS_REGISTER_ELEMENT( "SmallDisplacementSIMPElement3D8N", mSmallDisplacementSIMPElement3D8N );
 
         //Register Variables with Python connection
         KRATOS_REGISTER_VARIABLE( YOUNGS_MODULUS_MIN)
@@ -83,13 +85,15 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE( X_PHYS )
         KRATOS_REGISTER_VARIABLE( X_PHYS_OLD )
         KRATOS_REGISTER_VARIABLE( DCDX )
+        KRATOS_REGISTER_VARIABLE( DCDX_COMPLIANT )
         KRATOS_REGISTER_VARIABLE( DVDX )
         KRATOS_REGISTER_VARIABLE( SOLID_VOID )
         KRATOS_REGISTER_VARIABLE( LOCAL_STRAIN_ENERGY )
+        KRATOS_REGISTER_VARIABLE( LOCAL_STRAIN_ENERGY_COMPLIANT )
         KRATOS_REGISTER_VARIABLE( INITIAL_ELEMENT_SIZE )
+        KRATOS_REGISTER_VARIABLE( LAMBDA_ADJOINT )
 
 
     }
 
 }  // namespace Kratos.
-

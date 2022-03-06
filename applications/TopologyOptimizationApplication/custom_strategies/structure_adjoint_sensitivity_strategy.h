@@ -101,8 +101,9 @@ public:
 
         block_for_each(mr_structure_model_part.Elements(), [&](Element& element_i)
         {
-            element_i.Calculate(DCDX, Out, ConstProcessInfo);
+            element_i.Calculate(DCDX_COMPLIANT, Out, ConstProcessInfo);
             i++;
+            
         });
 
         KRATOS_INFO("[TopOpt]") << "  Objective Function sensitivities computed  [ spent time =  " << timer.ElapsedSeconds() << " ] " << std::endl;

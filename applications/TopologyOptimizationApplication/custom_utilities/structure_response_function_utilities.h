@@ -112,9 +112,9 @@ public:
                 element_i++ )
         {
 
-            element_i->Calculate(LOCAL_STRAIN_ENERGY, Out, mr_structure_model_part.GetProcessInfo());
+            element_i->Calculate(LOCAL_STRAIN_ENERGY_COMPLIANT, Out, mr_structure_model_part.GetProcessInfo());
 
-            Global_Strain_Energy += element_i->GetValue(LOCAL_STRAIN_ENERGY);
+            Global_Strain_Energy += element_i->GetValue(LOCAL_STRAIN_ENERGY_COMPLIANT);
             
         }
 
@@ -122,6 +122,37 @@ public:
 
         // Return this obtained Global Strain Energy value as the objective function of the complete system
         return Global_Strain_Energy;
+
+        KRATOS_CATCH("");
+    }
+
+    double ComputeDisplacement()
+    {
+        KRATOS_TRY;
+
+        BuiltinTimer timer;
+        KRATOS_INFO("[TopOpt]") <<"  Start the calculation of the dispalcements at the defined nodes."<<std::endl;
+
+        array_1d<double,3> vector_L = ZeroVector(3);
+        array_1d<double,3> displacement = ZeroVector(3);
+        int counter = 1;
+        double objective_function = 0;
+
+
+        for(ModelPart::NodeIterator it_node = mr_structure_model_part.NodesBegin(); it_node != mr_structure_model_part.NodesEnd(); ++it_node )
+        {
+            if (counter == 2246 || counter==2248 )
+            {
+                
+                displacement = it_node->FastGetSolutionStepValue(DISPLACEMENT);
+                objective_function +=   std::abs(displacement[0]);
+                KRATOS_INFO("[TopOpt]") <<"  Displacement: "<<objective_function <<std::endl;
+            }
+            counter ++;
+        }
+
+        KRATOS_INFO("[TopOpt]") <<"  Displacement calculated                [ spent time =  " << timer.ElapsedSeconds() << " ] " << std::endl;
+        return objective_function;
 
         KRATOS_CATCH("");
     }

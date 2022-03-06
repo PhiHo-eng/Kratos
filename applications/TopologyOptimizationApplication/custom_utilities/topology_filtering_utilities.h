@@ -240,7 +240,7 @@ public:
 
                     // Creation of mesh independent convolution operator (weight factors)
                     H  = FilterFunc.ComputeWeight(distance);
-                    Hxdc = H*(Results[ElementPositionItem_j]->GetOriginElement()->GetValue(DCDX))
+                    Hxdc = H*(Results[ElementPositionItem_j]->GetOriginElement()->GetValue(DCDX_COMPLIANT))
                             *(Results[ElementPositionItem_j]->GetOriginElement()->GetValue(X_PHYS));
                     H_sum    += H;
                     Hxdc_sum += Hxdc;
@@ -254,7 +254,7 @@ public:
             i = 0;
             for(ModelPart::ElementsContainerType::iterator elem_i = mrModelPart.ElementsBegin();
                     elem_i!=mrModelPart.ElementsEnd(); elem_i++)
-                elem_i->SetValue(DCDX,dcdx_filtered[i++]);
+                elem_i->SetValue(DCDX_COMPLIANT,dcdx_filtered[i++]);
 
             KRATOS_INFO("[TopOpt]") << "  Filtered sensitivities calculated          [ spent time =  " << timer.ElapsedSeconds() << " ] " << std::endl;
         }

@@ -127,7 +127,7 @@ void SmallDisplacementSIMPElement::Calculate(const Variable<double> &rVariable, 
 {
     KRATOS_TRY
 
-    if (rVariable == DCDX || rVariable == LOCAL_STRAIN_ENERGY)
+    if (rVariable == DCDX || rVariable == DCDX_COMPLIANT || rVariable == LOCAL_STRAIN_ENERGY || rVariable == LOCAL_STRAIN_ENERGY_COMPLIANT)
     {
         // Get values
         const double E_min     = this->GetProperties()[YOUNGS_MODULUS_MIN];
@@ -162,26 +162,59 @@ void SmallDisplacementSIMPElement::Calculate(const Variable<double> &rVariable, 
             ue[3 * node_i + 2] = CurrentDisplacement[2];
         }
 
-        // Calculate trans(ue)*Ke0*ue
-        Vector intermediateVector;
-        intermediateVector.resize(NumNodes * 3);
-        intermediateVector = prod(trans(ue), Ke0);
-        double ue_Ke0_ue = inner_prod(intermediateVector, ue);
+        if (rVariable == DCDX_COMPLIANT || rVariable == LOCAL_STRAIN_ENERGY_COMPLIANT )
+        {
 
-        if (rVariable == DCDX)
-        {
-            // Calculation of the compliance sensitivities DCDX
-            double dcdx = (-penalty)* (E_initial - E_min) * pow(x_phys, penalty - 1) * ue_Ke0_ue;
-            this->SetValue(DCDX, dcdx); 
-        }
-        if (rVariable == LOCAL_STRAIN_ENERGY)
-        {
-            // Calculation of the local strain energy (requires Ke)
-            double local_strain_energy = factor * ue_Ke0_ue;
+            Vector lambda;
+            lambda = this->GetValue(LAMBDA_ADJOINT);
+            //KRATOS_INFO("[TopOpt]") << "  LAMBDA " << E_initial<< " ] " << std::endl;
+            //lambda = -lambda;
+            Vector intermediateVector;
+            intermediateVector.resize(NumNodes * 3);
+            intermediateVector = prod(trans(lambda), Ke0);
+            double lambda_Ke0_ue = inner_prod(intermediateVector, ue);
+            double local_strain_energy = factor * lambda_Ke0_ue;
             this->SetValue(LOCAL_STRAIN_ENERGY, local_strain_energy);
+            
+            if (rVariable == DCDX_COMPLIANT)
+            {
+                // Calculation of the compliance sensitivities DCDX
+                double dcdx = (penalty)* (E_initial - E_min) * pow(x_phys, penalty - 1) * lambda_Ke0_ue;
+                this->SetValue(DCDX_COMPLIANT, dcdx); 
+            }
+            if (rVariable == LOCAL_STRAIN_ENERGY_COMPLIANT)
+            {
+                // Calculation of the local strain energy (requires Ke)
+                double local_strain_energy =  factor * lambda_Ke0_ue;
+                this->SetValue(LOCAL_STRAIN_ENERGY_COMPLIANT, local_strain_energy);
+
+            }
 
         }
 
+        else if (rVariable == DCDX || rVariable == LOCAL_STRAIN_ENERGY)
+        {
+
+            // Calculate trans(ue)*Ke0*ue
+            Vector intermediateVector;
+            intermediateVector.resize(NumNodes * 3);
+            intermediateVector = prod(trans(ue), Ke0);
+            double ue_Ke0_ue = inner_prod(intermediateVector, ue);
+
+            if (rVariable == DCDX)
+            {
+                // Calculation of the compliance sensitivities DCDX
+                double dcdx = (-penalty)* (E_initial - E_min) * pow(x_phys, penalty - 1) * ue_Ke0_ue;
+                this->SetValue(DCDX, dcdx); 
+            }
+            if (rVariable == LOCAL_STRAIN_ENERGY)
+            {
+                // Calculation of the local strain energy (requires Ke)
+                double local_strain_energy = factor * ue_Ke0_ue;
+                this->SetValue(LOCAL_STRAIN_ENERGY, local_strain_energy);
+
+            }
+        }
     } else if (rVariable == DVDX) {
 		// Calculation of the volume sensitivities DVDX
         double element_size = this->GetValue(INITIAL_ELEMENT_SIZE);

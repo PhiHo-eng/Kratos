@@ -264,4 +264,3 @@ private:
 }  /* namespace Kratos.*/
 
 #endif /* KRATOS_RESIDUAL_BASED_STATIC_SIMP_SCHEME  defined */
-
