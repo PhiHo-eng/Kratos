@@ -75,7 +75,7 @@
            	    "mesh_id"         : 0,
            	    "model_part_name" : "Structure.PointLoad3D_load_inverse",
             	"variable_name"   : "POINT_LOAD",
-            	"modulus"         : "200.0",
+            	"modulus"         : "1000.0",
             	"direction"       : [-1.0,0.0,0.0]
             }
     }],

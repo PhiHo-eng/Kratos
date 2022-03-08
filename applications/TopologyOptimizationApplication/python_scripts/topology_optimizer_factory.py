@@ -118,14 +118,14 @@ class SIMPMethod:
         #spring2_5 = self.pseudo_model_part.CreateNewElement("NodalConcentratedElement2D1N", 48010, [11421], opt_model_part.GetProperties()[1])
         #spring2_6 = self.pseudo_model_part.CreateNewElement("NodalConcentratedElement2D1N", 48011, [29430], opt_model_part.GetProperties()[1])
 
-        spring1_1.SetValue(stm.NODAL_DISPLACEMENT_STIFFNESS,[100,0,0])
-        spring1_2.SetValue(stm.NODAL_DISPLACEMENT_STIFFNESS,[100,0,0])
+        spring1_1.SetValue(stm.NODAL_DISPLACEMENT_STIFFNESS,[1000,0,0])
+        spring1_2.SetValue(stm.NODAL_DISPLACEMENT_STIFFNESS,[1000,0,0])
         #spring1_3.SetValue(stm.NODAL_DISPLACEMENT_STIFFNESS,[1,0,0])
         #spring1_4.SetValue(stm.NODAL_DISPLACEMENT_STIFFNESS,[1,0,0])
         #spring1_5.SetValue(stm.NODAL_DISPLACEMENT_STIFFNESS,[1,0,0])
 
-        spring2_1.SetValue(stm.NODAL_DISPLACEMENT_STIFFNESS,[100,0,0])
-        spring2_2.SetValue(stm.NODAL_DISPLACEMENT_STIFFNESS,[100,0,0])
+        spring2_1.SetValue(stm.NODAL_DISPLACEMENT_STIFFNESS,[1000,0,0])
+        spring2_2.SetValue(stm.NODAL_DISPLACEMENT_STIFFNESS,[1000,0,0])
         #spring2_3.SetValue(stm.NODAL_DISPLACEMENT_STIFFNESS,[1,0,0])
         #spring2_4.SetValue(stm.NODAL_DISPLACEMENT_STIFFNESS,[1,0,0])
         #spring2_5.SetValue(stm.NODAL_DISPLACEMENT_STIFFNESS,[1,0,0])
@@ -284,8 +284,12 @@ class SIMPMethod:
             self.analyzer(self.controller.get_controls(), response, opt_itr)
             
             # Filter sensitivities
-            km.Logger.Print("\n[TopOpt]:   ::[Filter Sensitivities]::")
-            self.filter_utils.ApplyFilterSensitivity(self.config["filter_type"].GetString() , self.config["filter_kernel"].GetString() )
+            #km.Logger.Print("\n[TopOpt]:   ::[Filter Sensitivities]::")
+            #self.filter_utils.ApplyFilterSensitivity(self.config["filter_type"].GetString() , self.config["filter_kernel"].GetString() )
+
+            if (self.config["density_filter"].GetString() == "density"):
+                km.Logger.Print("\n[TopOpt]   ::[Filter Densities]::") 
+                self.filter_utils.ApplyFilterDensity(self.config["density_filter"].GetString() , self.config["filter_kernel"].GetString(), opt_itr )
 
 
             # Update design variables ( densities )  --> new X by:
@@ -307,9 +311,7 @@ class SIMPMethod:
 
 
 
-            if (self.config["density_filter"].GetString() == "density"):
-                km.Logger.Print("\n[TopOpt]   ::[Filter Densities]::") 
-                self.filter_utils.ApplyFilterDensity(self.config["density_filter"].GetString() , self.config["filter_kernel"].GetString(), opt_itr )
+            
 
 
             # Print of results

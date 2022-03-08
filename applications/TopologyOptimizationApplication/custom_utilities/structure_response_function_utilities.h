@@ -145,7 +145,7 @@ public:
             {
                 
                 displacement = it_node->FastGetSolutionStepValue(DISPLACEMENT);
-                objective_function +=   std::abs(displacement[0]);
+                objective_function +=   displacement[0];
                 KRATOS_INFO("[TopOpt]") <<"  Displacement: "<<objective_function <<std::endl;
             }
             counter ++;

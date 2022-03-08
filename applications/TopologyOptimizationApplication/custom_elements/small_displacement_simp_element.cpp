@@ -167,7 +167,7 @@ void SmallDisplacementSIMPElement::Calculate(const Variable<double> &rVariable, 
 
             Vector lambda;
             lambda = this->GetValue(LAMBDA_ADJOINT);
-            //KRATOS_INFO("[TopOpt]") << "  LAMBDA " << E_initial<< " ] " << std::endl;
+            //KRATOS_INFO("[TopOpt]") << "  LAMBDA - U " << lambda[1] << " ] " << std::endl;
             //lambda = -lambda;
             Vector intermediateVector;
             intermediateVector.resize(NumNodes * 3);
@@ -181,6 +181,7 @@ void SmallDisplacementSIMPElement::Calculate(const Variable<double> &rVariable, 
                 // Calculation of the compliance sensitivities DCDX
                 double dcdx = (penalty)* (E_initial - E_min) * pow(x_phys, penalty - 1) * lambda_Ke0_ue;
                 this->SetValue(DCDX_COMPLIANT, dcdx); 
+                //KRATOS_INFO("[TopOpt]") << "  SENSITIVITY " << ue << " ] " << std::endl;
             }
             if (rVariable == LOCAL_STRAIN_ENERGY_COMPLIANT)
             {

@@ -53,17 +53,17 @@ solver_pseudo.ImportModelPart()
 solver_pseudo.AddDofs()
 #===================================================================
 
-model_part.GetProperties()[1].SetValue(km.YOUNG_MODULUS, 3000)
-model_part.GetProperties()[1].SetValue(km.POISSON_RATIO, 0.4)
+model_part.GetProperties()[1].SetValue(km.YOUNG_MODULUS, 4000)
+model_part.GetProperties()[1].SetValue(km.POISSON_RATIO, 0.3)
 model_part.GetProperties()[1].SetValue(km.DENSITY, 1)
-model_part.GetProperties()[1].SetValue(kto.YOUNGS_MODULUS_MIN, 1e-09)
-model_part.GetProperties()[1].SetValue(kto.YOUNGS_MODULUS_0, 3000)
+model_part.GetProperties()[1].SetValue(kto.YOUNGS_MODULUS_MIN, 1)
+model_part.GetProperties()[1].SetValue(kto.YOUNGS_MODULUS_0, 4000)
 #pseudo
-model_part_pseudo.GetProperties()[1].SetValue(km.YOUNG_MODULUS, 3000)
-model_part_pseudo.GetProperties()[1].SetValue(km.POISSON_RATIO, 0.4)
+model_part_pseudo.GetProperties()[1].SetValue(km.YOUNG_MODULUS, 4000)
+model_part_pseudo.GetProperties()[1].SetValue(km.POISSON_RATIO, 0.3)
 model_part_pseudo.GetProperties()[1].SetValue(km.DENSITY, 1)
-model_part_pseudo.GetProperties()[1].SetValue(kto.YOUNGS_MODULUS_MIN, 1e-09)
-model_part_pseudo.GetProperties()[1].SetValue(kto.YOUNGS_MODULUS_0, 3000)
+model_part_pseudo.GetProperties()[1].SetValue(kto.YOUNGS_MODULUS_MIN, 1)
+model_part_pseudo.GetProperties()[1].SetValue(kto.YOUNGS_MODULUS_0, 4000)
 #===================================================================
 
 

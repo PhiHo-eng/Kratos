@@ -136,7 +136,7 @@ public:
             double domain_size;
 
             // Bisection algorithm to find Lagrange Multiplier so that volume constraint is satisfied (lmid)
-            while ((l2-l1)/(l1+l2) > 0.0001 && l2 > 1e-40)
+            while ((l2-l1)/(l1+l2) > 0.0001) //&& l2 > 1e-40)
             //while ((l2-l1)/(l1+l2) > 0.001)
             {
                 lmid = 0.5*(l2+l1);
@@ -161,7 +161,7 @@ public:
                     case 0:
                     {
                         //x_new = std::max(0.0, std::max(x_old - move, std::min(1.0, pow(std::min(x_old + move, x_old*pow(std::max(1e-10, -dcdx/dvdx/lmid),0.3)),q))));
-                        x_new = std::max(0.1, std::max(x_old - move, std::min(1.0, pow(std::min(x_old + move, pow(x_old *std::max( 1e-5, -dcdx/(dvdx*lmid)),0.3)),q))));
+                        x_new = std::max(0.11, std::max(x_old - move, std::min(1.0, pow(std::min(x_old + move, pow(x_old *std::max( 1e-10, -dcdx/(dvdx*lmid)),0.3)),q))));
                         //x_new = std::max(0.0, std::max(x_old - move, std::min(1.0, pow(std::min(x_old + move, x_old * sqrt(-dcdx/dvdx/lmid)),q))));
                         break;
                     }
@@ -192,7 +192,7 @@ public:
                     domain_size += initial_volume;
                     nele = nele + 1;
                 }
-                KRATOS_INFO("[TopOpt]") << "L1: "<<l1<< " and l2:" << l2<< std::endl;
+                //KRATOS_INFO("[TopOpt]") << "L1: "<<l1<< " and l2:" << l2<< std::endl;
 
                 if(  sum_X_Phys  -(volfrac*nele) > 0)
                     l1=lmid;

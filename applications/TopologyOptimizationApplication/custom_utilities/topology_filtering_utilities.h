@@ -355,7 +355,7 @@ public:
 
                     // Creation of mesh independent convolution operator (weight factors)
                     H  = FilterFunc.ComputeWeight(distance);
-                    Hxdx = H*(Results[ElementPositionItem_j]->GetOriginElement()->GetValue(X_PHYS));
+                    Hxdx = H*(Results[ElementPositionItem_j]->GetOriginElement()->GetValue(X_PHYS_OLD));
                     H_sum    += H;
                     Hxdx_sum += Hxdx;
                 }
@@ -373,7 +373,7 @@ public:
             i = 0;
             for(ModelPart::ElementsContainerType::iterator elem_i = mrModelPart.ElementsBegin();
                     elem_i!=mrModelPart.ElementsEnd(); elem_i++)
-                elem_i->SetValue(X_PHYS, x_phys_filtered[i++]);
+                elem_i->SetValue(X_PHYS_OLD, x_phys_filtered[i++]);
 
             KRATOS_INFO("[TopOpt]") << "  Filtered densities calculated          	[ spent time =  " << timer.ElapsedSeconds() << " ] " << std::endl;
         }
