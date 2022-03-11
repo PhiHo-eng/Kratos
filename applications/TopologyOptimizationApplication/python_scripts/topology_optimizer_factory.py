@@ -106,29 +106,33 @@ class SIMPMethod:
 
         spring1_1 = self.opt_model_part.CreateNewElement("NodalConcentratedElement2D1N", 48000, [1], opt_model_part.GetProperties()[1])
         spring1_2 = self.opt_model_part.CreateNewElement("NodalConcentratedElement2D1N", 48001, [2], opt_model_part.GetProperties()[1])
-        #spring1_3 = self.opt_model_part.CreateNewElement("NodalConcentratedElement2D1N", 48002, [9], opt_model_part.GetProperties()[1])
-        #spring1_4 = self.opt_model_part.CreateNewElement("NodalConcentratedElement2D1N", 48003, [27], opt_model_part.GetProperties()[1])
-        #spring1_5 = self.opt_model_part.CreateNewElement("NodalConcentratedElement2D1N", 48004, [52], opt_model_part.GetProperties()[1])
-       # spring1_6 = self.opt_model_part.CreateNewElement("NodalConcentratedElement2D1N", 48005, [93], opt_model_part.GetProperties()[1])
+        """ spring1_3 = self.opt_model_part.CreateNewElement("NodalConcentratedElement2D1N", 48002, [9], opt_model_part.GetProperties()[1])
+        spring1_4 = self.opt_model_part.CreateNewElement("NodalConcentratedElement2D1N", 48003, [25], opt_model_part.GetProperties()[1])
+        spring1_5 = self.opt_model_part.CreateNewElement("NodalConcentratedElement2D1N", 48004, [52], opt_model_part.GetProperties()[1])
+        spring1_6 = self.opt_model_part.CreateNewElement("NodalConcentratedElement2D1N", 48005, [93], opt_model_part.GetProperties()[1]) """
 
         spring2_1 = self.pseudo_model_part.CreateNewElement("NodalConcentratedElement2D1N", 48006, [2246], opt_model_part.GetProperties()[1])
         spring2_2 = self.pseudo_model_part.CreateNewElement("NodalConcentratedElement2D1N", 48007, [2248], opt_model_part.GetProperties()[1])
-        #spring2_3 = self.pseudo_model_part.CreateNewElement("NodalConcentratedElement2D1N", 48008, [11393], opt_model_part.GetProperties()[1])
-        #spring2_4 = self.pseudo_model_part.CreateNewElement("NodalConcentratedElement2D1N", 48009, [11408], opt_model_part.GetProperties()[1])
-        #spring2_5 = self.pseudo_model_part.CreateNewElement("NodalConcentratedElement2D1N", 48010, [11421], opt_model_part.GetProperties()[1])
-        #spring2_6 = self.pseudo_model_part.CreateNewElement("NodalConcentratedElement2D1N", 48011, [29430], opt_model_part.GetProperties()[1])
+        """ spring2_1 = self.pseudo_model_part.CreateNewElement("NodalConcentratedElement2D1N", 48006, [29382], opt_model_part.GetProperties()[1])
+        spring2_2 = self.pseudo_model_part.CreateNewElement("NodalConcentratedElement2D1N", 48007, [29385], opt_model_part.GetProperties()[1])
+        spring2_3 = self.pseudo_model_part.CreateNewElement("NodalConcentratedElement2D1N", 48008, [29394], opt_model_part.GetProperties()[1])
+        spring2_4 = self.pseudo_model_part.CreateNewElement("NodalConcentratedElement2D1N", 48009, [29404], opt_model_part.GetProperties()[1])
+        spring2_5 = self.pseudo_model_part.CreateNewElement("NodalConcentratedElement2D1N", 48010, [29416], opt_model_part.GetProperties()[1])
+        spring2_6 = self.pseudo_model_part.CreateNewElement("NodalConcentratedElement2D1N", 48011, [29430], opt_model_part.GetProperties()[1]) """
 
-        spring1_1.SetValue(stm.NODAL_DISPLACEMENT_STIFFNESS,[1000,0,0])
-        spring1_2.SetValue(stm.NODAL_DISPLACEMENT_STIFFNESS,[1000,0,0])
-        #spring1_3.SetValue(stm.NODAL_DISPLACEMENT_STIFFNESS,[1,0,0])
-        #spring1_4.SetValue(stm.NODAL_DISPLACEMENT_STIFFNESS,[1,0,0])
-        #spring1_5.SetValue(stm.NODAL_DISPLACEMENT_STIFFNESS,[1,0,0])
+        spring1_1.SetValue(stm.NODAL_DISPLACEMENT_STIFFNESS,[0.100,0,0])
+        spring1_2.SetValue(stm.NODAL_DISPLACEMENT_STIFFNESS,[0.100,0,0])
+        #spring1_3.SetValue(stm.NODAL_DISPLACEMENT_STIFFNESS,[100,0,0])
+        #spring1_4.SetValue(stm.NODAL_DISPLACEMENT_STIFFNESS,[100,0,0])
+        #spring1_5.SetValue(stm.NODAL_DISPLACEMENT_STIFFNESS,[100,0,0])
+        #spring1_6.SetValue(stm.NODAL_DISPLACEMENT_STIFFNESS,[100,0,0])
 
-        spring2_1.SetValue(stm.NODAL_DISPLACEMENT_STIFFNESS,[1000,0,0])
-        spring2_2.SetValue(stm.NODAL_DISPLACEMENT_STIFFNESS,[1000,0,0])
-        #spring2_3.SetValue(stm.NODAL_DISPLACEMENT_STIFFNESS,[1,0,0])
-        #spring2_4.SetValue(stm.NODAL_DISPLACEMENT_STIFFNESS,[1,0,0])
-        #spring2_5.SetValue(stm.NODAL_DISPLACEMENT_STIFFNESS,[1,0,0])
+        spring2_1.SetValue(stm.NODAL_DISPLACEMENT_STIFFNESS,[0.100,0,0])
+        spring2_2.SetValue(stm.NODAL_DISPLACEMENT_STIFFNESS,[0.100,0,0])
+        #spring2_3.SetValue(stm.NODAL_DISPLACEMENT_STIFFNESS,[100,0,0])
+        #spring2_4.SetValue(stm.NODAL_DISPLACEMENT_STIFFNESS,[100,0,0])
+        #spring2_5.SetValue(stm.NODAL_DISPLACEMENT_STIFFNESS,[100,0,0])
+        #spring2_6.SetValue(stm.NODAL_DISPLACEMENT_STIFFNESS,[100,0,0])
 
         # Initialize element variables
         for element_i in opt_model_part.Elements:
@@ -226,6 +230,10 @@ class SIMPMethod:
         for C_id, empty_id_c in self.constraints:
             only_C_id = C_id
             break
+        
+        max_number = self.config["max_opt_iterations"].GetInt()
+        objective = [0]*max_number
+        volume = [0]*max_number
 
         # Initialize variables for comparison purposes in Topology Optimization Tool
         pmax                          = self.config["penalty"].GetInt()  # Maximum penalty value used for continuation strategy
@@ -284,8 +292,8 @@ class SIMPMethod:
             self.analyzer(self.controller.get_controls(), response, opt_itr)
             
             # Filter sensitivities
-            #km.Logger.Print("\n[TopOpt]:   ::[Filter Sensitivities]::")
-            #self.filter_utils.ApplyFilterSensitivity(self.config["filter_type"].GetString() , self.config["filter_kernel"].GetString() )
+            km.Logger.Print("\n[TopOpt]:   ::[Filter Sensitivities]::")
+            self.filter_utils.ApplyFilterSensitivity(self.config["filter_type"].GetString() , self.config["filter_kernel"].GetString() )
 
             if (self.config["density_filter"].GetString() == "density"):
                 km.Logger.Print("\n[TopOpt]   ::[Filter Densities]::") 
@@ -318,6 +326,9 @@ class SIMPMethod:
             km.Logger.Print("\n[TopOpt]:   ::[RESULTS]::")
             Obj_Function = response[only_F_id]["func"]
             C_Function = response[only_C_id]["func"]
+
+            objective[opt_itr-1] = Obj_Function
+            volume[opt_itr-1] = self.config["initial_volume_fraction"].GetDouble() + C_Function
 
             km.Logger.Print("  Obj. function value           = ", "{:.3f}".format(Obj_Function))
             km.Logger.Print("  Const. function value         = ", "{:.5f}".format(C_Function))
@@ -366,6 +377,8 @@ class SIMPMethod:
                     km.Logger.Print("  Time needed for total optimization so far = ",round(end_time - self.opt_start_time,1),"s")
                     km.Logger.Print("\n  Maximal iterations of optimization problem reached!")
                     self.io_utils.SaveOptimizationResults(self.config["restart_input_file"].GetString(), self.opt_model_part, restart_filename)
+                    print("Objective function: ", objective)
+                    print("Objective function: ", volume)
                     break
 
                 # Check for relative tolerance
@@ -375,6 +388,8 @@ class SIMPMethod:
                     km.Logger.Print("  Time needed for total optimization so far = ",round(end_time - self.opt_start_time,1),"s")
                     km.Logger.Print("\n  Optimization problem converged within a relative objective tolerance of",self.config["relative_tolerance"].GetDouble())
                     self.io_utils.SaveOptimizationResults(self.config["restart_input_file"].GetString(), self.opt_model_part, restart_filename)
+                    print("Objective function: ", objective)
+                    print("Objective function: ", volume)
 
                     break
             
@@ -388,7 +403,6 @@ class SIMPMethod:
             for element_i in self.opt_model_part.Elements:
                 Id =element_i.Id
                 if (Id < 26000):
-                    Id = 1
                     element_i.SetValue(kto.X_PHYS_OLD, element_i.GetValue(kto.X_PHYS))
 
             #self.opt_model_part.Elements[48000].SetValue(stm.NODAL_DISPLACEMENT_STIFFNESS,[100/(opt_itr*3),0,0])
