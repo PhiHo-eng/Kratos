@@ -71,7 +71,7 @@ class MMAAlgorithm
         
     }
 
-    void UpdateDensitiesUsingMMAAlgorithm( char update_type[], double volfrac, double greyscale , double OptItr , double qmax)
+    void UpdateDensitiesUsingMMAAlgorithm( char update_type[], char optimization_type[], double volfrac, double greyscale , double OptItr , double qmax)
     {
         KRATOS_TRY;
 
@@ -100,32 +100,66 @@ class MMAAlgorithm
 			double vol_frac_iteration = 0;
 
 			//get the information from the element and save them in the new vectors
-			for( ModelPart::ElementsContainerType::iterator element_i = mrModelPart.ElementsBegin(); element_i!= mrModelPart.ElementsEnd(); element_i++ )
-			{	
-				
-				double xval = element_i->GetValue(X_PHYS);
+            
+            //MIN COMPLIANCE: Fill needed vectors with the values for min compliance
+            if (strcmp( optimization_type , "min_compliance" ) == 0)
+            {
+                for( ModelPart::ElementsContainerType::iterator element_i = mrModelPart.ElementsBegin(); element_i!= mrModelPart.ElementsEnd(); element_i++ )
+                {	
+                    
+                    double xval = element_i->GetValue(X_PHYS);
 
-				//Value of the objective function sensitivity
-				double dfdx = (element_i->GetValue(DCDX_COMPLIANT));
+                    //Value of the objective function sensitivity
+                    double dfdx = (element_i->GetValue(DCDX));
 
-				// Value of the constraint function sensitivity
-				double dgdx = (element_i->GetValue(DVDX));
+                    // Value of the constraint function sensitivity
+                    double dgdx = (element_i->GetValue(DVDX));
 
 
-				double youngs_modulus = element_i->GetProperties()[YOUNGS_MODULUS_0];
+                    double youngs_modulus = element_i->GetProperties()[YOUNGS_MODULUS_0];
 
-				
-				double Xmin = 0;
-				double Xmax = 1;
-				vol_summ = vol_summ + xval;
-				x[iteration]= xval;
-				df[iteration]= dfdx;
-				dg[iteration] = dgdx;
-				xmax[iteration] = Xmax;
-				xmin[iteration] = Xmin;
-				iteration = iteration + 1;
-			}
+                    
+                    double Xmin = 0;
+                    double Xmax = 1;
+                    vol_summ = vol_summ + xval;
+                    x[iteration]= xval;
+                    df[iteration]= dfdx;
+                    dg[iteration] = dgdx;
+                    xmax[iteration] = Xmax;
+                    xmin[iteration] = Xmin;
+                    iteration = iteration + 1;
+                }
+            }
 
+            //MAX COMPLIANCE: Fill needed vectors with the values for max compliance
+            if (strcmp( optimization_type , "max_compliance" ) == 0)
+            {
+                for( ModelPart::ElementsContainerType::iterator element_i = mrModelPart.ElementsBegin(); element_i!= mrModelPart.ElementsEnd(); element_i++ )
+                {	
+                    
+                    double xval = element_i->GetValue(X_PHYS);
+
+                    //Value of the objective function sensitivity
+                    double dfdx = (element_i->GetValue(DCDX_COMPLIANT));
+
+                    // Value of the constraint function sensitivity
+                    double dgdx = (element_i->GetValue(DVDX));
+
+
+                    double youngs_modulus = element_i->GetProperties()[YOUNGS_MODULUS_0];
+
+                    
+                    double Xmin = 0;
+                    double Xmax = 1;
+                    vol_summ = vol_summ + xval;
+                    x[iteration]= xval;
+                    df[iteration]= dfdx;
+                    dg[iteration] = dgdx;
+                    xmax[iteration] = Xmax;
+                    xmin[iteration] = Xmin;
+                    iteration = iteration + 1;
+                }
+            }
 
  			// Initialize MMA
 

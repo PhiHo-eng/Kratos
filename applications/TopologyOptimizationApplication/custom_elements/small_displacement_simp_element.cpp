@@ -167,14 +167,12 @@ void SmallDisplacementSIMPElement::Calculate(const Variable<double> &rVariable, 
 
             Vector lambda;
             lambda = this->GetValue(LAMBDA_ADJOINT);
-            //KRATOS_INFO("[TopOpt]") << "  LAMBDA - U " << lambda[1] << " ] " << std::endl;
+            //KRATOS_INFO("[TopOpt]") << "  LAMBDA - U " << lambda << " ] " << std::endl;
             //lambda = -lambda;
             Vector intermediateVector;
             intermediateVector.resize(NumNodes * 3);
             intermediateVector = prod(trans(lambda), Ke0);
             double lambda_Ke0_ue = inner_prod(intermediateVector, ue);
-            double local_strain_energy = factor * lambda_Ke0_ue;
-            this->SetValue(LOCAL_STRAIN_ENERGY, local_strain_energy);
             
             if (rVariable == DCDX_COMPLIANT)
             {

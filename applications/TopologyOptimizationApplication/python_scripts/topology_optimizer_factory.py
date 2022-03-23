@@ -19,6 +19,7 @@
 
 
 # importing the Kratos Library
+from typing import Counter
 from matplotlib.pyplot import spring
 import KratosMultiphysics as km
 import KratosMultiphysics.TopologyOptimizationApplication as kto
@@ -103,36 +104,32 @@ class SIMPMethod:
         self.opt_model_part = opt_model_part
         self.pseudo_model_part = pseudo_model_part
 
+        number = opt_model_part.NumberOfElements()
+        counter = 1
 
-        spring1_1 = self.opt_model_part.CreateNewElement("NodalConcentratedElement2D1N", 48000, [1], opt_model_part.GetProperties()[1])
-        spring1_2 = self.opt_model_part.CreateNewElement("NodalConcentratedElement2D1N", 48001, [2], opt_model_part.GetProperties()[1])
-        """ spring1_3 = self.opt_model_part.CreateNewElement("NodalConcentratedElement2D1N", 48002, [9], opt_model_part.GetProperties()[1])
-        spring1_4 = self.opt_model_part.CreateNewElement("NodalConcentratedElement2D1N", 48003, [25], opt_model_part.GetProperties()[1])
-        spring1_5 = self.opt_model_part.CreateNewElement("NodalConcentratedElement2D1N", 48004, [52], opt_model_part.GetProperties()[1])
-        spring1_6 = self.opt_model_part.CreateNewElement("NodalConcentratedElement2D1N", 48005, [93], opt_model_part.GetProperties()[1]) """
-
-        spring2_1 = self.pseudo_model_part.CreateNewElement("NodalConcentratedElement2D1N", 48006, [2246], opt_model_part.GetProperties()[1])
-        spring2_2 = self.pseudo_model_part.CreateNewElement("NodalConcentratedElement2D1N", 48007, [2248], opt_model_part.GetProperties()[1])
-        """ spring2_1 = self.pseudo_model_part.CreateNewElement("NodalConcentratedElement2D1N", 48006, [29382], opt_model_part.GetProperties()[1])
-        spring2_2 = self.pseudo_model_part.CreateNewElement("NodalConcentratedElement2D1N", 48007, [29385], opt_model_part.GetProperties()[1])
-        spring2_3 = self.pseudo_model_part.CreateNewElement("NodalConcentratedElement2D1N", 48008, [29394], opt_model_part.GetProperties()[1])
-        spring2_4 = self.pseudo_model_part.CreateNewElement("NodalConcentratedElement2D1N", 48009, [29404], opt_model_part.GetProperties()[1])
-        spring2_5 = self.pseudo_model_part.CreateNewElement("NodalConcentratedElement2D1N", 48010, [29416], opt_model_part.GetProperties()[1])
-        spring2_6 = self.pseudo_model_part.CreateNewElement("NodalConcentratedElement2D1N", 48011, [29430], opt_model_part.GetProperties()[1]) """
-
-        spring1_1.SetValue(stm.NODAL_DISPLACEMENT_STIFFNESS,[0.100,0,0])
-        spring1_2.SetValue(stm.NODAL_DISPLACEMENT_STIFFNESS,[0.100,0,0])
-        #spring1_3.SetValue(stm.NODAL_DISPLACEMENT_STIFFNESS,[100,0,0])
-        #spring1_4.SetValue(stm.NODAL_DISPLACEMENT_STIFFNESS,[100,0,0])
-        #spring1_5.SetValue(stm.NODAL_DISPLACEMENT_STIFFNESS,[100,0,0])
-        #spring1_6.SetValue(stm.NODAL_DISPLACEMENT_STIFFNESS,[100,0,0])
-
-        spring2_1.SetValue(stm.NODAL_DISPLACEMENT_STIFFNESS,[0.100,0,0])
-        spring2_2.SetValue(stm.NODAL_DISPLACEMENT_STIFFNESS,[0.100,0,0])
-        #spring2_3.SetValue(stm.NODAL_DISPLACEMENT_STIFFNESS,[100,0,0])
-        #spring2_4.SetValue(stm.NODAL_DISPLACEMENT_STIFFNESS,[100,0,0])
-        #spring2_5.SetValue(stm.NODAL_DISPLACEMENT_STIFFNESS,[100,0,0])
-        #spring2_6.SetValue(stm.NODAL_DISPLACEMENT_STIFFNESS,[100,0,0])
+        if (config["optimization_process"].GetString()=="max_compliance"):
+            #Define the sring elements for the compliant mechanism optimization
+            for node in self.opt_model_part.GetSubModelPart("PointLoad3D_load").Nodes:
+                ID = node.Id
+                #Spring elements for the normal load, saved in the actual model
+                self.opt_model_part.CreateNewElement("NodalConcentratedElement2D1N", number+counter, [ID], opt_model_part.GetProperties()[1])
+                self.opt_model_part.Elements[number+counter].SetValue(stm.NODAL_DISPLACEMENT_STIFFNESS,[config["spring_stiffness_x"].GetDouble(),config["spring_stiffness_y"].GetDouble(),config["spring_stiffness_z"].GetDouble()])
+                counter += 1
+                #Spring elements for the normal load, saved in the pseudo model
+                self.pseudo_model_part.CreateNewElement("NodalConcentratedElement2D1N", number+counter, [ID], opt_model_part.GetProperties()[1])
+                self.pseudo_model_part.Elements[number+counter].SetValue(stm.NODAL_DISPLACEMENT_STIFFNESS,[config["spring_stiffness_x"].GetDouble(),config["spring_stiffness_y"].GetDouble(),config["spring_stiffness_z"].GetDouble()])
+                counter += 1
+            
+            for node in self.opt_model_part.GetSubModelPart("PointLoad3D_load_inverse").Nodes:
+                ID = node.Id
+                #Spring elements for the pseudo load, saved in the actual model
+                self.opt_model_part.CreateNewElement("NodalConcentratedElement2D1N", number+counter, [ID], opt_model_part.GetProperties()[1])
+                self.opt_model_part.Elements[number+counter].SetValue(stm.NODAL_DISPLACEMENT_STIFFNESS,[config["spring_stiffness_x"].GetDouble(),config["spring_stiffness_y"].GetDouble(),config["spring_stiffness_z"].GetDouble()])
+                counter += 1
+                #Spring elements for the pseudo load, saved in the pseudo model
+                self.pseudo_model_part.CreateNewElement("NodalConcentratedElement2D1N", number+counter, [ID], opt_model_part.GetProperties()[1])
+                self.pseudo_model_part.Elements[number+counter].SetValue(stm.NODAL_DISPLACEMENT_STIFFNESS,[config["spring_stiffness_x"].GetDouble(),config["spring_stiffness_y"].GetDouble(),config["spring_stiffness_z"].GetDouble()])
+                counter += 1
 
         # Initialize element variables
         for element_i in opt_model_part.Elements:
@@ -144,16 +141,14 @@ class SIMPMethod:
             element_i.SetValue(kto.INITIAL_ELEMENT_SIZE, elemental_volume)
             #id = element_i.Id
             #if (id == 1 or id == 41 or id == 81 or id == 121 or id == 161 or id == 201 or id == 1161 or id == 1200 ):
-             #   element_i.SetValue(kto.SOLID_VOID, 1)
+              # element_i.SetValue(kto.SOLID_VOID, 1)
             
-
-        for element_i in pseudo_model_part.Elements:
-            element_i.SetValue(kto.PENAL, config["penalty"].GetInt())
-            element_i.SetValue(kto.X_PHYS, config["initial_volume_fraction"].GetDouble())
-            element_i.SetValue(kto.X_PHYS_OLD, config["initial_volume_fraction"].GetDouble())
-            element_i.SetValue(km.YOUNG_MODULUS, opt_model_part.GetProperties()[config["simp_property"].GetInt()].GetValue(km.YOUNG_MODULUS))
-            elemental_volume = element_i.GetGeometry().DomainSize()
-            element_i.SetValue(kto.INITIAL_ELEMENT_SIZE, elemental_volume)
+        if (config["optimization_process"].GetString()=="max_compliance"):
+            for element_i in pseudo_model_part.Elements:
+                element_i.SetValue(kto.PENAL, config["penalty"].GetInt())
+                element_i.SetValue(kto.X_PHYS, config["initial_volume_fraction"].GetDouble())
+                element_i.SetValue(kto.X_PHYS_OLD, config["initial_volume_fraction"].GetDouble())
+                element_i.SetValue(km.YOUNG_MODULUS, opt_model_part.GetProperties()[config["simp_property"].GetInt()].GetValue(km.YOUNG_MODULUS))
             
         # Only happens if continuation strategy is activated (Initialization of penalty factor)
         if(self.config["continuation_strategy"] == 1):
@@ -169,7 +164,7 @@ class SIMPMethod:
         if(self.config["optimization_algorithm"].GetString() == "oc_algorithm"):
             self.design_update_utils = kto.TopologyUpdatingUtilities( opt_model_part )
 
-        number = opt_model_part.NumberOfElements()
+        
         m_const = 1
 
         if(self.config["optimization_algorithm"].GetString() == "mma_algorithm"):
@@ -293,7 +288,7 @@ class SIMPMethod:
             
             # Filter sensitivities
             km.Logger.Print("\n[TopOpt]:   ::[Filter Sensitivities]::")
-            self.filter_utils.ApplyFilterSensitivity(self.config["filter_type"].GetString() , self.config["filter_kernel"].GetString() )
+            self.filter_utils.ApplyFilterSensitivity(self.config["filter_type"].GetString() , self.config["optimization_process"].GetString(), self.config["filter_kernel"].GetString() )
 
             if (self.config["density_filter"].GetString() == "density"):
                 km.Logger.Print("\n[TopOpt]   ::[Filter Densities]::") 
@@ -304,6 +299,7 @@ class SIMPMethod:
             if(self.config["optimization_algorithm"].GetString() == "oc_algorithm"):
                 km.Logger.Print("\n[TopOpt]:    ::[Update Densities with OC]::")
                 self.design_update_utils.UpdateDensitiesUsingOCMethod( self.config["optimization_algorithm"].GetString(),
+                                                                    self.config["optimization_process"].GetString(),
                                                                    self.config["initial_volume_fraction"].GetDouble(),
                                                                    self.config["grey_scale_filter"].GetInt(),
                                                                    opt_itr,
@@ -312,6 +308,7 @@ class SIMPMethod:
             if(self.config["optimization_algorithm"].GetString() == "mma_algorithm"):
                 km.Logger.Print("\n[TopOpt]:    ::[Update Densities with MMA]::")
                 self.design_update_utils_mma.UpdateDensitiesUsingMMAAlgorithm( self.config["optimization_algorithm"].GetString(),
+                                                                    self.config["optimization_process"].GetString(),
                                                                    self.config["initial_volume_fraction"].GetDouble(),
                                                                    self.config["grey_scale_filter"].GetInt(),
                                                                    opt_itr,
@@ -393,29 +390,20 @@ class SIMPMethod:
 
                     break
             
-            for element_i in self.pseudo_model_part.Elements:
-                Id = element_i.Id
-                if (Id > 26000 ):
-                    Id = 1
-                element_i.SetValue(kto.X_PHYS, self.opt_model_part.Elements[Id].GetValue(kto.X_PHYS))
+            #Update all X_PHYS of the pseudo load case of the compliant mechanism
+            if (self.config["optimization_process"].GetString()=="max_compliance"):
+                for element_i in self.pseudo_model_part.Elements:
+                    Id = element_i.Id
+                    if (Id >  self.config["number_of_elements"].GetInt()):
+                        Id = 1
+                    element_i.SetValue(kto.X_PHYS, self.opt_model_part.Elements[Id].GetValue(kto.X_PHYS))
 
-            # Set X_PHYS_OLD to update the value for the next simulation's "change percentage"
+            # Update the variable X_PHYS_OLD for the optimization process and the convergance criteria
             for element_i in self.opt_model_part.Elements:
                 Id =element_i.Id
-                if (Id < 26000):
+                if (Id < self.config["number_of_elements"].GetInt()):
                     element_i.SetValue(kto.X_PHYS_OLD, element_i.GetValue(kto.X_PHYS))
 
-            #self.opt_model_part.Elements[48000].SetValue(stm.NODAL_DISPLACEMENT_STIFFNESS,[100/(opt_itr*3),0,0])
-            #self.opt_model_part.Elements[48001].SetValue(stm.NODAL_DISPLACEMENT_STIFFNESS,[100/(opt_itr*3),0,0])
-
-            #self.pseudo_model_part.Elements[48006].SetValue(stm.NODAL_DISPLACEMENT_STIFFNESS,[100/(opt_itr*3),0,0])
-            #self.pseudo_model_part.Elements[48007].SetValue(stm.NODAL_DISPLACEMENT_STIFFNESS,[100/(opt_itr*3),0,0])
-            #spring1_3.SetValue(stm.NODAL_DISPLACEMENT_STIFFNESS,[1,0,0])
-            #spring1_4.SetValue(stm.NODAL_DISPLACEMENT_STIFFNESS,[1,0,0])
-            #spring1_5.SetValue(stm.NODAL_DISPLACEMENT_STIFFNESS,[1,0,0])
-
-            #spring2_1.SetValue(stm.NODAL_DISPLACEMENT_STIFFNESS,[100,0,0])
-            #spring2_2.SetValue(stm.NODAL_DISPLACEMENT_STIFFNESS,[100,0,0])
 
             # Take time needed for current optimization step
             end_time = time.time()

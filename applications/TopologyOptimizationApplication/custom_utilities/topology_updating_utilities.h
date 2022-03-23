@@ -101,7 +101,7 @@ public:
     // ---------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Finds the value of the X_PHYS (density) and updates it into the optimization problem
-    void UpdateDensitiesUsingOCMethod( char update_type[], double volfrac, double greyscale , double OptItr , double qmax)
+    void UpdateDensitiesUsingOCMethod( char update_type[], char optimization_type[], double volfrac, double greyscale , double OptItr , double qmax)
     {
         KRATOS_TRY;
 
@@ -125,82 +125,154 @@ public:
                 KRATOS_INFO("[TopOpt]") << "  Grey Scale Filter deactivated, q = " << q << std::endl;
             }
 
-            // Update Densities procedure
-            double l1    = 0.0;
-            double l2    = 1.0e9; ///10000000000.0
-            const double move    = 0.1;
-            double sum_X_Phys;
-            int nele;
-            double x_new = 0.0;
-            double lmid = 0.0;
-            double domain_size;
-
-            // Bisection algorithm to find Lagrange Multiplier so that volume constraint is satisfied (lmid)
-            while ((l2-l1)/(l1+l2) > 0.0001 && l2 > 1e-40)
-            //while ((l2-l1)/(l1+l2) > 0.001)
+            // MIN COMPLIANCE: Updating the optimization problem with min_compliance
+            if (strcmp( optimization_type , "min_compliance" ) == 0)
             {
-                lmid = 0.5*(l2+l1);
-                sum_X_Phys = 0.0;
-                nele = 0;
-                x_new = 0.0;
-                domain_size = 0.0;
+                // Update Densities procedure
+                double l1 = 0.0;
+                double l2    = 1.0e12;
+                const double move    = 0.2;
+                double sum_X_Phys;
+                int nele;
+                double x_new = 0.0;
+                double lmid = 0.0;
 
-                for( ModelPart::ElementIterator element_i = mrModelPart.ElementsBegin(); element_i!= mrModelPart.ElementsEnd(); element_i++ )
+                // Bisection algorithm to find Lagrange Multiplier so that volume constraint is satisfied (lmid)
+                while ((l2-l1)/(l1+l2) > 0.001)
                 {
-                    const double x_old = element_i->GetValue(X_PHYS_OLD);
-                    const int solid_void = element_i->GetValue(SOLID_VOID);
-                    const double dcdx  = element_i->GetValue(DCDX_COMPLIANT);
-                    const double dvdx  = element_i->GetValue(DVDX);
-                    const double initial_volume = element_i->GetValue(INITIAL_ELEMENT_SIZE);
+                    lmid = 0.5*(l2+l1);
+                    sum_X_Phys = 0.0;
+                    nele = 0;
+                    x_new = 0.0;
 
-                    // Update Density
-                    // When q = 1, Grey Scale Filter is not activated, i.e., the results are in the classical OC update method
-                    switch(solid_void)
+                    for( ModelPart::ElementIterator element_i = mrModelPart.ElementsBegin(); element_i!= mrModelPart.ElementsEnd(); element_i++ )
                     {
-                    // NORMAL elements
-                    case 0:
-                    {
-                        //x_new = std::max(0.0, std::max(x_old - move, std::min(1.0, pow(std::min(x_old + move, x_old*pow(std::max(1e-10, -dcdx/dvdx/lmid),0.3)),q))));
-                        x_new = std::max(0.0, std::max(x_old - move, std::min(1.0, pow(std::min(x_old + move, pow(x_old *std::max( 1e-10, -dcdx/(dvdx*lmid)),0.3)),q))));
-                        //x_new = std::max(0.0, std::max(x_old - move, std::min(1.0, pow(std::min(x_old + move, x_old * sqrt(-dcdx/dvdx/lmid)),q))));
-                        break;
-                    }
-                    // ACTIVE elements (solid elements)
-                    case 1:
-                    {
-                        x_new = 1;
-                        break;
-                    }
-                    // PASSIVE elements (void elements)
-                    case 2:
-                    {
-                        x_new = 0;
-                        break;
-                    }
-                    default:
-                    {
-                        // If no element identification was found
-                        KRATOS_INFO("[TopOpt]") << "This value for SOLID_VOID does not exist."<< std::endl;
-                    }
+                        const double x_old = element_i->GetValue(X_PHYS_OLD);
+                        const int solid_void = element_i->GetValue(SOLID_VOID);
+                        const double dcdx  = element_i->GetValue(DCDX);
+                        const double dvdx  = element_i->GetValue(DVDX);
+
+                        // Update Density
+                        // When q = 1, Grey Scale Filter is not activated, i.e., the results are in the classical OC update method
+                        switch(solid_void)
+                        {
+                        // NORMAL elements
+                        case 0:
+                        {
+                            x_new = std::max(0.0, std::max(x_old - move, std::min(1.0, pow(std::min(x_old + move, x_old * sqrt(-dcdx/dvdx/lmid)),q))));
+                            break;
+                        }
+                        // ACTIVE elements (solid elements)
+                        case 1:
+                        {
+                            x_new = 1;
+                            break;
+                        }
+                        // PASSIVE elements (void elements)
+                        case 2:
+                        {
+                            x_new = 0;
+                            break;
+                        }
+                        default:
+                        {
+                            // If no element identification was found
+                            KRATOS_INFO("[TopOpt]") << "This value for SOLID_VOID does not exist."<< std::endl;
+                        }
+                        }
+
+                        // Update of the calculated X_PHYS for the next iteration
+                        element_i->SetValue(X_PHYS, x_new);
+
+                        // Updating additional quantities to determine the correct Lagrange Multiplier (lmid)
+                        sum_X_Phys = sum_X_Phys + x_new;
+                        nele = nele + 1;
                     }
 
-                    // Update of the calculated X_PHYS for the next iteration
-                    element_i->SetValue(X_PHYS, x_new);
-
-                    // Updating additional quantities to determine the correct Lagrange Multiplier (lmid)
-                    sum_X_Phys = sum_X_Phys + x_new;
-                    domain_size += initial_volume;
-                    nele = nele + 1;
+                    if( sum_X_Phys > (volfrac*nele))
+                        l1=lmid;
+                    else
+                        l2=lmid;
                 }
-                //KRATOS_INFO("[TopOpt]") << "L1: "<<l1<< " and l2:" << l2<< std::endl;
+            }
 
-                if(  sum_X_Phys  -(volfrac*nele) > 0)
-                    l1=lmid;
-                
-                //if( sum_X_Phys - (volfrac*nele) < 0 )
-                else
-                    l2=lmid;
-                
+            // MAX COMPLIANCE: Updating the optimization problem with max_compliance
+            if (strcmp( optimization_type , "max_compliance" ) == 0)
+            {
+
+                // Update Densities procedure
+                double l1    = 0.0;
+                double l2    = 1.0e9; ///10000000000.0
+                const double move    = 0.1;
+                double sum_X_Phys;
+                int nele;
+                double x_new = 0.0;
+                double lmid = 0.0;
+                double domain_size;
+
+                // Bisection algorithm to find Lagrange Multiplier so that volume constraint is satisfied (lmid)
+                while ((l2-l1)/(l1+l2) > 0.0001  && l2 > 1e-40)
+                //while ((l2-l1)/(l1+l2) > 0.001)
+                {
+                    lmid = 0.5*(l2+l1);
+                    sum_X_Phys = 0.0;
+                    nele = 0;
+                    x_new = 0.0;
+                    domain_size = 0.0;
+
+                    for( ModelPart::ElementIterator element_i = mrModelPart.ElementsBegin(); element_i!= mrModelPart.ElementsEnd(); element_i++ )
+                    {
+                        const double x_old = element_i->GetValue(X_PHYS_OLD);
+                        const int solid_void = element_i->GetValue(SOLID_VOID);
+                        const double dcdx  = element_i->GetValue(DCDX_COMPLIANT);
+                        const double dvdx  = element_i->GetValue(DVDX);
+                        const double initial_volume = element_i->GetValue(INITIAL_ELEMENT_SIZE);
+
+                        // Update Density
+                        // When q = 1, Grey Scale Filter is not activated, i.e., the results are in the classical OC update method
+                        switch(solid_void)
+                        {
+                        // NORMAL elements
+                        case 0:
+                        {
+                            x_new = std::max(0.0, std::max(x_old - move, std::min(1.0, pow(std::min(x_old + move, x_old *pow(std::max( 1e-10, -dcdx)/(dvdx*lmid),0.3)),q))));
+                            break;
+                        }
+                        // ACTIVE elements (solid elements)
+                        case 1:
+                        {
+                            x_new = 1;
+                            break;
+                        }
+                        // PASSIVE elements (void elements)
+                        case 2:
+                        {
+                            x_new = 0;
+                            break;
+                        }
+                        default:
+                        {
+                            // If no element identification was found
+                            KRATOS_INFO("[TopOpt]") << "This value for SOLID_VOID does not exist."<< std::endl;
+                        }
+                        }
+
+                        // Update of the calculated X_PHYS for the next iteration
+                        element_i->SetValue(X_PHYS, x_new);
+
+                        // Updating additional quantities to determine the correct Lagrange Multiplier (lmid)
+                        sum_X_Phys = sum_X_Phys + x_new;
+                        domain_size += initial_volume;
+                        nele = nele + 1;
+                    }
+
+                    if(  sum_X_Phys  -(volfrac*nele) > 0)
+                        l1=lmid;
+                    
+                    else
+                        l2=lmid;
+                    
+                }
             }
 
             // Printing of results

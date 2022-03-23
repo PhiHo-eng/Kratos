@@ -141,7 +141,7 @@ public:
 
         for(ModelPart::NodeIterator it_node = mr_structure_model_part.NodesBegin(); it_node != mr_structure_model_part.NodesEnd(); ++it_node )
         {
-            if (counter == 2246 || counter==2248 )
+            if (counter == 11381 || counter==11383 ||counter ==11393|| counter==11408 ||counter == 11421) //(counter == 29382 || counter==29385 ||counter == 29394|| counter==29404 ||counter == 29416 || counter==29430  ) //(counter == 2246 || counter == 2248)//
             {
                 
                 displacement = it_node->FastGetSolutionStepValue(DISPLACEMENT);

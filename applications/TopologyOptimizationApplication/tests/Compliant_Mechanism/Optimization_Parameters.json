@@ -1,21 +1,26 @@
 {
     "optimization_parameters" : {
         "optimization_method"           : "simp_method",
+        "optimization_process"           : "max_compliance",
         "simp_property"                 :  1,
         "penalty"                       :  3,
         "continuation_strategy"         : 0,
         "initial_volume_fraction"       : 0.3,
-        "density_filter"	            : "density",
+        "density_filter"	            : "densit",
         "filter_type"                   : "sensitivity",
         "filter_kernel"                 : "linear",
-        "filter_radius"     	         :0.0015,
+        "filter_radius"     	         :1.5,
         "max_elements_in_filter_radius" : 500,
         "grey_scale_filter"             : 0, 
         "q_max"                         : 2.0,
-        "optimization_algorithm"        : "mma_algorithm",
-        "max_opt_iterations"            : 20,
-        "relative_tolerance"            : 0.0000005,      
+        "optimization_algorithm"        : "oc_algorithm",
+        "max_opt_iterations"            : 100,
+        "relative_tolerance"            : 0.00000000005,      
         "increasing_obj"                :0,
+        "number_of_elements"            :1200,
+        "spring_stiffness_x"              : 0.2,
+        "spring_stiffness_y"              : 0.0,
+        "spring_stiffness_z"              : 0.0,
         "objectives"    :{
             "strain_energy":    {
                 "grad"      :"provided"

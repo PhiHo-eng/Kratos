@@ -101,6 +101,28 @@ public:
 
         block_for_each(mr_structure_model_part.Elements(), [&](Element& element_i)
         {
+            element_i.Calculate(DCDX, Out, ConstProcessInfo);
+            i++;
+            
+        });
+
+        KRATOS_INFO("[TopOpt]") << "  Objective Function sensitivities computed  [ spent time =  " << timer.ElapsedSeconds() << " ] " << std::endl;
+
+        KRATOS_CATCH("");
+    }
+
+        void ComputeDisplacementSensitivities()
+    {
+       KRATOS_TRY;
+
+        double Out = 0.0;
+        int i= 0;
+
+        BuiltinTimer timer;
+        const ProcessInfo& ConstProcessInfo= mr_structure_model_part.GetProcessInfo();
+
+        block_for_each(mr_structure_model_part.Elements(), [&](Element& element_i)
+        {
             element_i.Calculate(DCDX_COMPLIANT, Out, ConstProcessInfo);
             i++;
             

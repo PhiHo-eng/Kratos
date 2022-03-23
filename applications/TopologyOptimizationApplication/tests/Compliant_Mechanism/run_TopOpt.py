@@ -53,17 +53,17 @@ solver_pseudo.ImportModelPart()
 solver_pseudo.AddDofs()
 #===================================================================
 
-model_part.GetProperties()[1].SetValue(km.YOUNG_MODULUS, 4000)
+model_part.GetProperties()[1].SetValue(km.YOUNG_MODULUS, 1)
 model_part.GetProperties()[1].SetValue(km.POISSON_RATIO, 0.3)
 model_part.GetProperties()[1].SetValue(km.DENSITY, 1)
-model_part.GetProperties()[1].SetValue(kto.YOUNGS_MODULUS_MIN, 1)
-model_part.GetProperties()[1].SetValue(kto.YOUNGS_MODULUS_0, 4000)
+model_part.GetProperties()[1].SetValue(kto.YOUNGS_MODULUS_MIN, 1e-9)
+model_part.GetProperties()[1].SetValue(kto.YOUNGS_MODULUS_0, 1)
 #pseudo
-model_part_pseudo.GetProperties()[1].SetValue(km.YOUNG_MODULUS, 4000)
+model_part_pseudo.GetProperties()[1].SetValue(km.YOUNG_MODULUS, 1)
 model_part_pseudo.GetProperties()[1].SetValue(km.POISSON_RATIO, 0.3)
 model_part_pseudo.GetProperties()[1].SetValue(km.DENSITY, 1)
-model_part_pseudo.GetProperties()[1].SetValue(kto.YOUNGS_MODULUS_MIN, 1)
-model_part_pseudo.GetProperties()[1].SetValue(kto.YOUNGS_MODULUS_0, 4000)
+model_part_pseudo.GetProperties()[1].SetValue(kto.YOUNGS_MODULUS_MIN, 1e-9)
+model_part_pseudo.GetProperties()[1].SetValue(kto.YOUNGS_MODULUS_0, 1)
 #===================================================================
 
 
@@ -213,22 +213,19 @@ def Analyzer(controls, response, opt_itr):
         ii =1
 
         for element_i in model_part.Elements:
-            #print("Node ",element_i.GetNodes())
             nn = 0
-            disp= [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
-            for nodes_i in element_i.GetNodes():
-                Id = nodes_i.Id
-                val = model_part_pseudo.Nodes[Id].GetSolutionStepValue(km.DISPLACEMENT)
-                #print("VAL ", val)
-                disp[nn*3+0]= val[0]
-                disp[nn*3+1]= val[1]
-                disp[nn*3+2]= val[2]
-                nn += 1
-            
-            element_i.SetValue(kto.LAMBDA_ADJOINT, disp)
-
-            #element_i.SetValue(kto.PENAL, x_phys )
-            ii = ii + 1
+            disp= [None]*(8*3)
+            ID = element_i.Id
+            if (ID<OptimizationParameters["optimization_parameters"]["number_of_elements"].GetDouble()):
+                for nodes_i in element_i.GetNodes():
+                    Id = nodes_i.Id
+                    val = model_part_pseudo.Nodes[Id].GetSolutionStepValue(km.DISPLACEMENT)
+                    disp[nn*3+0]= val[0]
+                    disp[nn*3+1]= val[1]
+                    disp[nn*3+2]= val[2]
+                    nn += 1
+                
+                element_i.SetValue(kto.LAMBDA_ADJOINT, disp)
 
         # Calculate objective function value based on u and save into container
         response["strain_energy"]["func"] =  response_analyzer.ComputeDisplacement()
@@ -247,7 +244,7 @@ def Analyzer(controls, response, opt_itr):
 
     # Compute sensitivities of objective function
     if(controls["strain_energy"]["calc_grad"]):        
-        sensitivity_solver.ComputeStrainEnergySensitivities()
+        sensitivity_solver.ComputeDisplacementSensitivities()
     # Compute sensitivities of constraint function
     if(controls["volume_fraction"]["calc_grad"]):  
         sensitivity_solver.ComputeVolumeFractionSensitivities()

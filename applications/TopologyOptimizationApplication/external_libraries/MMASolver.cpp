@@ -82,10 +82,10 @@ void MMASolver::Update(double *xval, const double *dfdx, const double *gx, const
 	std::copy_n(xval, n, xold1.data());
 
 	// Solve the dual with an interior point method
-	SolveDIP(xval);
+	//SolveDIP(xval);
 
 	// Solve the dual with a steepest ascent method
-	// SolveDSA(xval);
+	SolveDSA(xval);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

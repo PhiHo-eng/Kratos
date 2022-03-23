@@ -155,7 +155,7 @@ public:
     // ---------------------------------------------------------------------------------------------------------------------------------------------
 
     /// With the calculated sensitivities, an additional filter to avoid checkerboard effects is used here
-    void ApplyFilterSensitivity( char FilterType[], char FilterFunctionType[] )
+    void ApplyFilterSensitivity( char FilterType[], char optimization_type[], char FilterFunctionType[] )
     {
 
         KRATOS_TRY;
@@ -230,20 +230,43 @@ public:
                 double H_sum = 0;
                 array_1d<double,3> elemental_distance;
                 double distance = 0.0;
-
-                for(int ElementPositionItem_j = 0; ElementPositionItem_j < num_nodes_found; ElementPositionItem_j++)
+                
+                // MIN COMPLIANCE: Filter the sensitivities of the minimum compliance problem
+                if (strcmp( optimization_type , "min_compliance" ) == 0)
                 {
-                    // Calculate distances
-                    elemental_distance = ZeroVector(3);
-                    elemental_distance = *Results[ElementPositionItem_j] - center_coord;
-                    distance = std::sqrt(inner_prod(elemental_distance,elemental_distance));
+                    for(int ElementPositionItem_j = 0; ElementPositionItem_j < num_nodes_found; ElementPositionItem_j++)
+                    {
+                        // Calculate distances
+                        elemental_distance = ZeroVector(3);
+                        elemental_distance = *Results[ElementPositionItem_j] - center_coord;
+                        distance = std::sqrt(inner_prod(elemental_distance,elemental_distance));
 
-                    // Creation of mesh independent convolution operator (weight factors)
-                    H  = FilterFunc.ComputeWeight(distance);
-                    Hxdc = H*(Results[ElementPositionItem_j]->GetOriginElement()->GetValue(DCDX_COMPLIANT))
-                            *(Results[ElementPositionItem_j]->GetOriginElement()->GetValue(X_PHYS));
-                    H_sum    += H;
-                    Hxdc_sum += Hxdc;
+                        // Creation of mesh independent convolution operator (weight factors)
+                        H  = FilterFunc.ComputeWeight(distance);
+                        Hxdc = H*(Results[ElementPositionItem_j]->GetOriginElement()->GetValue(DCDX))
+                                *(Results[ElementPositionItem_j]->GetOriginElement()->GetValue(X_PHYS));
+                        H_sum    += H;
+                        Hxdc_sum += Hxdc;
+                    }
+                }
+
+                // MAX COMPLIANCE: Filter the sensitivities of the maximum compliance problem
+                if (strcmp( optimization_type , "max_compliance" ) == 0)
+                {
+                    for(int ElementPositionItem_j = 0; ElementPositionItem_j < num_nodes_found; ElementPositionItem_j++)
+                    {
+                        // Calculate distances
+                        elemental_distance = ZeroVector(3);
+                        elemental_distance = *Results[ElementPositionItem_j] - center_coord;
+                        distance = std::sqrt(inner_prod(elemental_distance,elemental_distance));
+
+                        // Creation of mesh independent convolution operator (weight factors)
+                        H  = FilterFunc.ComputeWeight(distance);
+                        Hxdc = H*(Results[ElementPositionItem_j]->GetOriginElement()->GetValue(DCDX_COMPLIANT))
+                                *(Results[ElementPositionItem_j]->GetOriginElement()->GetValue(X_PHYS));
+                        H_sum    += H;
+                        Hxdc_sum += Hxdc;
+                    }
                 }
 
                 // Calculate filtered sensitivities and assign to the elements
@@ -252,9 +275,22 @@ public:
 
             // Overwrite sensitivities with filtered sensitivities
             i = 0;
-            for(ModelPart::ElementsContainerType::iterator elem_i = mrModelPart.ElementsBegin();
-                    elem_i!=mrModelPart.ElementsEnd(); elem_i++)
-                elem_i->SetValue(DCDX_COMPLIANT,dcdx_filtered[i++]);
+            
+            //MIN COMPLIANCE: Update of the minimum compliance sensitivities
+            if (strcmp( optimization_type , "min_compliance" ) == 0)
+                {
+                for(ModelPart::ElementsContainerType::iterator elem_i = mrModelPart.ElementsBegin();
+                        elem_i!=mrModelPart.ElementsEnd(); elem_i++)
+                    elem_i->SetValue(DCDX,dcdx_filtered[i++]);
+                }
+
+            //MAX COMPLIANCE: Update of the maximum compliance sensitivities
+            if (strcmp( optimization_type , "max_compliance" ) == 0)
+                {
+                for(ModelPart::ElementsContainerType::iterator elem_i = mrModelPart.ElementsBegin();
+                        elem_i!=mrModelPart.ElementsEnd(); elem_i++)
+                    elem_i->SetValue(DCDX_COMPLIANT,dcdx_filtered[i++]);
+                }
 
             KRATOS_INFO("[TopOpt]") << "  Filtered sensitivities calculated          [ spent time =  " << timer.ElapsedSeconds() << " ] " << std::endl;
         }
