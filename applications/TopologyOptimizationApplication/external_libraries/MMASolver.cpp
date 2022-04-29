@@ -40,7 +40,7 @@ MMASolver::MMASolver(int nn, int mm, double ai, double ci, double di)
 	, raa0(0.00001)
 	, move(0.5)
 	, albefa(0.1)
-	, asyminit(0.5) // 0.2;
+	, asyminit(0.2) // 0.2;
 	, asymdec(0.7) // 0.65;
 	, asyminc(1.2) // 1.08;
 	, a(m, ai)
@@ -82,10 +82,10 @@ void MMASolver::Update(double *xval, const double *dfdx, const double *gx, const
 	std::copy_n(xval, n, xold1.data());
 
 	// Solve the dual with an interior point method
-	//SolveDIP(xval);
+	SolveDIP(xval);
 
 	// Solve the dual with a steepest ascent method
-	SolveDSA(xval);
+	//SolveDSA(xval);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

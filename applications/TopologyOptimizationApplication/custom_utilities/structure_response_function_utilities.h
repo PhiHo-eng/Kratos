@@ -106,7 +106,6 @@ public:
 
         double Out = 0.0;
         double Global_Strain_Energy = 0.0;
-
         // Loop over all elements to calculate their local objective function and sum it into the global objective function (Global Strain Energy)
         for( ModelPart::ElementIterator element_i = mr_structure_model_part.ElementsBegin(); element_i!= mr_structure_model_part.ElementsEnd();
                 element_i++ )
@@ -137,11 +136,21 @@ public:
         array_1d<double,3> displacement = ZeroVector(3);
         int counter = 1;
         double objective_function = 0;
+        std::vector<double> output_von_mises(1);
+
+        for( ModelPart::ElementIterator element_i = mr_structure_model_part.ElementsBegin(); element_i!= mr_structure_model_part.ElementsEnd();
+                element_i++ )
+        {
+
+        element_i->CalculateOnIntegrationPoints(VON_MISES_STRESS, output_von_mises, mr_structure_model_part.GetProcessInfo());
+            
+        }
+
 
 
         for(ModelPart::NodeIterator it_node = mr_structure_model_part.NodesBegin(); it_node != mr_structure_model_part.NodesEnd(); ++it_node )
         {
-            if (counter == 11381 || counter==11383 ||counter ==11393|| counter==11408 ||counter == 11421) //(counter == 29382 || counter==29385 ||counter == 29394|| counter==29404 ||counter == 29416 || counter==29430  ) //(counter == 2246 || counter == 2248)//
+            if (counter == 11381 || counter==11383 ||counter ==11393|| counter==11407 ||counter == 11421) //(counter == 177 || counter == 178 || counter == 182) //(counter == 2246 || counter == 2248)//(counter == 29382 || counter==29385 ||counter == 29394|| counter==29404 ||counter == 29416 || counter==29430  ) //
             {
                 
                 displacement = it_node->FastGetSolutionStepValue(DISPLACEMENT);

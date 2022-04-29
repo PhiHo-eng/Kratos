@@ -27,6 +27,7 @@
 // Core applications
 #include "topology_optimization_application.h"
 #include "custom_elements/small_displacement_simp_element.h"
+#include "custom_elements/adjoint_small_displacement_SIMP_element.h"
 
 // Project includes
 #include "includes/define.h"
@@ -55,6 +56,8 @@ namespace Kratos
     KRATOS_DEFINE_APPLICATION_VARIABLE( TOPOLOGY_OPTIMIZATION_APPLICATION, double, LOCAL_STRAIN_ENERGY )
     KRATOS_DEFINE_APPLICATION_VARIABLE( TOPOLOGY_OPTIMIZATION_APPLICATION, double, LOCAL_STRAIN_ENERGY_COMPLIANT )
     KRATOS_DEFINE_APPLICATION_VARIABLE( TOPOLOGY_OPTIMIZATION_APPLICATION, double, INITIAL_ELEMENT_SIZE )
+    KRATOS_DEFINE_APPLICATION_VARIABLE( TOPOLOGY_OPTIMIZATION_APPLICATION, double, YOUNGS_MODULUS_SENSITIVITY )
+    KRATOS_DEFINE_APPLICATION_VARIABLE( TOPOLOGY_OPTIMIZATION_APPLICATION, double, MAX_MEAN_STRESS )
     KRATOS_DEFINE_APPLICATION_VARIABLE( TOPOLOGY_OPTIMIZATION_APPLICATION, Vector, LAMBDA_ADJOINT )
 
 
@@ -211,6 +214,7 @@ namespace Kratos
         const SmallDisplacementSIMPElement mSmallDisplacementSIMPElement3D3N;
         const SmallDisplacementSIMPElement mSmallDisplacementSIMPElement3D4N;
         const SmallDisplacementSIMPElement mSmallDisplacementSIMPElement3D8N;
+        const AdjointSmallDisplacementSIMPElement<SmallDisplacement> mAdjointSmallDisplacementSIMPElement3D8N;
 
 
 

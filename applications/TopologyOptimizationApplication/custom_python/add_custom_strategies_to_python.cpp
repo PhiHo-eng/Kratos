@@ -24,6 +24,7 @@
 // Schemes
 #include "custom_strategies/structure_adjoint_sensitivity_strategy.h"
 #include "custom_strategies/custom_schemes/residualbased_incrementalupdate_static_simp_scheme.h"
+#include "custom_strategies/custom_schemes/residualbased_adjointupdate_static_simp_scheme.h"
 
 // Linear solvers
 #include "linear_solvers/linear_solver.h"
@@ -50,16 +51,23 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
     //custom scheme types
     typedef ResidualBasedIncrementalUpdateStaticSIMPScheme< SparseSpaceType, LocalSpaceType > ResidualBasedIncrementalUpdateStaticSIMPSchemeType;
+    typedef ResidualBasedAdjointUpdateStaticSIMPScheme< SparseSpaceType, LocalSpaceType > ResidualBasedAdjointUpdateStaticSIMPSchemeType;
     typedef StructureAdjointSensitivityStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > StructureAdjointSensitivityStrategyType;
     // =============================================================================================================================================
     // Scheme Classes
     // =============================================================================================================================================
 
-    // Static TIMP Scheme Type
+    // Static SIMP Scheme Type
     py::class_< ResidualBasedIncrementalUpdateStaticSIMPSchemeType, typename ResidualBasedIncrementalUpdateStaticSIMPSchemeType::Pointer, BaseSchemeType >
     (m,"ResidualBasedIncrementalUpdateStaticSIMPScheme")
     .def(py::init<>())
     .def("Initialize", &ResidualBasedIncrementalUpdateStaticSIMPScheme<SparseSpaceType, LocalSpaceType>::Initialize)
+    ;
+
+    // Adjoint static SIMP Scheme Type
+    py::class_< ResidualBasedAdjointUpdateStaticSIMPSchemeType, typename ResidualBasedAdjointUpdateStaticSIMPSchemeType::Pointer,  BaseSchemeType>
+    (m,"ResidualBasedAdjointUpdateStaticSIMPScheme")
+    .def(py::init<AdjointResponseFunction::Pointer>())
     ;
 
     // =============================================================================================================================================

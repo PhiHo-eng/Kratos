@@ -25,6 +25,9 @@ def CreateResponseFunction(response_id, response_settings, model):
     elif response_type == "adjoint_max_stress":
         return structural_response.AdjointResponseFunction(response_id, response_settings, model)
 
+    elif response_type == "adjoint_max_stress_topology":
+        return structural_response.AdjointResponseFunction(response_id, response_settings, model)    
+    
     elif response_type == "adjoint_nodal_reaction":
         return structural_response.AdjointResponseFunction(response_id, response_settings, model)
 

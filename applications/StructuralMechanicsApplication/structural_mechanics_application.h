@@ -75,6 +75,11 @@
 #include "custom_elements/axisym_updated_lagrangian.h"
 #include "custom_elements/small_displacement_bbar.h"
 
+
+//TopologyOptimization
+#include "custom_elements/small_displacement_simp_element_structural.h"
+#include "custom_response_functions/adjoint_elements/adjoint_small_displacement_SIMP_element_structural.h"
+
 /* Adding the mixed solid elements */
 #include "custom_elements/small_displacement_mixed_volumetric_strain_element.h"
 
@@ -315,6 +320,13 @@ private:
     const SmallDisplacement mSmallDisplacement3D15N;
     const SmallDisplacement mSmallDisplacement3D20N;
     const SmallDisplacement mSmallDisplacement3D27N;
+
+
+    // TopologyOptimization
+    const SmallDisplacementSIMPElementStructural mSmallDisplacementSIMPElementStructural3D3N;
+    const SmallDisplacementSIMPElementStructural mSmallDisplacementSIMPElementStructural3D4N;
+    const SmallDisplacementSIMPElementStructural mSmallDisplacementSIMPElementStructural3D8N;
+    const AdjointSmallDisplacementSIMPElementStructural<SmallDisplacementSIMPElementStructural> mAdjointSmallDisplacementSIMPElementStructural3D8N;
 
     const SmallDisplacementBbar mSmallDisplacementBbar2D4N;
     const SmallDisplacementBbar mSmallDisplacementBbar3D8N;

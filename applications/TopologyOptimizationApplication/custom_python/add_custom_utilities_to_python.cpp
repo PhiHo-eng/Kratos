@@ -59,6 +59,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     .def(py::init<ModelPart&, const double, const int>())
     .def("ApplyFilterSensitivity", &TopologyFilteringUtilities::ApplyFilterSensitivity)
     .def("ApplyFilterDensity", &TopologyFilteringUtilities::ApplyFilterDensity)
+    .def("ApplyFilterStress", &TopologyFilteringUtilities::ApplyFilterStress)
     ;
 
     py::class_<TopologyUpdatingUtilities >(m, "TopologyUpdatingUtilities")

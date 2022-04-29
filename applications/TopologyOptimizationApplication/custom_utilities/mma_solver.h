@@ -83,7 +83,7 @@ class MMAAlgorithm
 
 			// Create object of updating function
 			int nn = mrModelPart.NumberOfElements();
-			int mm = 1; /// constraints
+			int mm = 2; /// constraints
 
 			// number of iterations while running through the elements calling their properties
 			int iteration = 0; 
@@ -98,8 +98,53 @@ class MMAAlgorithm
 			double *xmax = new double[nn];
 			double vol_summ = 0;
 			double vol_frac_iteration = 0;
+            double domain_size = 0.0;
+            double max_mean_stress = 0.0;
+            int solid_void = 0;
+            double move = 0.2;//0.05 changed 26.04.
+            double max_stress_sens = 0.0;
+            double max_vol_constraint = 0.0;
+            double max_obj_func = 0.0;
+            double min_stress_sens = 0.0;
 
 			//get the information from the element and save them in the new vectors
+
+            for( ModelPart::ElementsContainerType::iterator element_i = mrModelPart.ElementsBegin(); element_i!= mrModelPart.ElementsEnd(); element_i++ )
+            {
+                double initial_size = element_i->GetValue(INITIAL_ELEMENT_SIZE);
+
+                double max_stress_sensitivity = element_i->GetValue(YOUNGS_MODULUS_SENSITIVITY);
+                //KRATOS_INFO("[TopOpt]") << "  \nSENSITIVITY: "<<max_stress_sensitivity<< std::endl;
+
+                //Value of the objective function sensitivity
+                double dfdx = (element_i->GetValue(DCDX_COMPLIANT));
+
+                // Value of the constraint function sensitivity
+                double dgdx = (element_i->GetValue(DVDX));
+
+                domain_size += initial_size;
+
+                if (dfdx > max_obj_func)
+                {
+                    max_obj_func = dfdx;
+                }         
+
+                if (dgdx > max_vol_constraint)
+                {
+                    max_vol_constraint = dgdx;
+                }  
+
+                if (max_stress_sensitivity < min_stress_sens)
+                {
+                    min_stress_sens = max_stress_sensitivity;
+                }
+
+                if (max_stress_sensitivity > max_stress_sens)
+                {
+                    max_stress_sens = max_stress_sensitivity;
+                }
+
+            }
             
             //MIN COMPLIANCE: Fill needed vectors with the values for min compliance
             if (strcmp( optimization_type , "min_compliance" ) == 0)
@@ -107,16 +152,13 @@ class MMAAlgorithm
                 for( ModelPart::ElementsContainerType::iterator element_i = mrModelPart.ElementsBegin(); element_i!= mrModelPart.ElementsEnd(); element_i++ )
                 {	
                     
-                    double xval = element_i->GetValue(X_PHYS);
+                    double xval = element_i->GetValue(X_PHYS_OLD);
 
                     //Value of the objective function sensitivity
                     double dfdx = (element_i->GetValue(DCDX));
 
                     // Value of the constraint function sensitivity
                     double dgdx = (element_i->GetValue(DVDX));
-
-
-                    double youngs_modulus = element_i->GetProperties()[YOUNGS_MODULUS_0];
 
                     
                     double Xmin = 0;
@@ -127,7 +169,7 @@ class MMAAlgorithm
                     dg[iteration] = dgdx;
                     xmax[iteration] = Xmax;
                     xmin[iteration] = Xmin;
-                    iteration = iteration + 1;
+                    iteration = iteration + 1;                        
                 }
             }
 
@@ -137,7 +179,7 @@ class MMAAlgorithm
                 for( ModelPart::ElementsContainerType::iterator element_i = mrModelPart.ElementsBegin(); element_i!= mrModelPart.ElementsEnd(); element_i++ )
                 {	
                     
-                    double xval = element_i->GetValue(X_PHYS);
+                    double xval = element_i->GetValue(X_PHYS_OLD);
 
                     //Value of the objective function sensitivity
                     double dfdx = (element_i->GetValue(DCDX_COMPLIANT));
@@ -145,19 +187,29 @@ class MMAAlgorithm
                     // Value of the constraint function sensitivity
                     double dgdx = (element_i->GetValue(DVDX));
 
+                    double initial_size = element_i->GetValue(INITIAL_ELEMENT_SIZE);
 
-                    double youngs_modulus = element_i->GetProperties()[YOUNGS_MODULUS_0];
+                    if ( iteration < 2)
+                        max_mean_stress = element_i->GetValue(MAX_MEAN_STRESS);
 
+                    double max_stress_sensitivity = element_i->GetValue(YOUNGS_MODULUS_SENSITIVITY);
+
+                    solid_void = element_i->GetValue(SOLID_VOID);
+                    if (solid_void > 0 )
+                        xval = 1.0;
                     
                     double Xmin = 0;
                     double Xmax = 1;
-                    vol_summ = vol_summ + xval;
+                    vol_summ = vol_summ + initial_size*xval;
                     x[iteration]= xval;
                     df[iteration]= dfdx;
-                    dg[iteration] = dgdx;
-                    xmax[iteration] = Xmax;
-                    xmin[iteration] = Xmin;
+                    dg[iteration*mm +0] =  initial_size/(domain_size*volfrac);
+                    dg[iteration*mm +1] = max_stress_sensitivity/50;
+                    xmax[iteration] = std::min(Xmax, xval+move);
+                    xmin[iteration] = std::max(Xmin, xval-move);
                     iteration = iteration + 1;
+                    //KRATOS_INFO("[TopOpt]") << "  Sensitivität objective: "<<dfdx/max_obj_func <<"! Sens. constraint: "<< initial_size/max_vol_constraint<<"! Sens. constr. stress: "<< max_stress_sensitivity<< std::endl;         
+                    
                 }
             }
 
@@ -165,18 +217,10 @@ class MMAAlgorithm
 
 			g[0] = 0;
 			vol_frac_iteration = vol_summ;
-			g[0] = (vol_frac_iteration -  volfrac*nn);
-
-			double Xminn = 0;
-			double Xmaxx= 1;
-			double movlim = 0.5;
-	
-
-			for (int iEl = 0; iEl < nn; iEl++) 
-			{
-				xmax[iEl] = std::min(Xmaxx, x[iEl] + movlim);
-				xmin[iEl] = std::max(Xminn, x[iEl] - movlim); 
-			}
+			g[0] = ((vol_frac_iteration/(domain_size*volfrac))-1);
+            g[1] = 0;
+            g[1] = (max_mean_stress/50)-1;
+            KRATOS_INFO("[TopOpt]") << "  constraint value: "<<g[1] << " max stress sens: "<< max_stress_sens<< " and minimum sens: " <<min_stress_sens<<std::endl;
 			
 			// Update the design variables using MMA
 
@@ -184,12 +228,22 @@ class MMAAlgorithm
 
 
 			int jiter = 0;
+            double Void = 0;
 
 			for(ModelPart::ElementsContainerType::iterator elem_i = mrModelPart.ElementsBegin();
 					elem_i!=mrModelPart.ElementsEnd(); elem_i++)
 				{
-				elem_i->SetValue(X_PHYS, x[jiter]);
-				jiter= jiter +1;
+                Void = elem_i->GetValue(SOLID_VOID);
+                if (Void == 1)
+                {
+                    elem_i->SetValue(X_PHYS, 1);
+                    jiter= jiter +1;
+                }
+                else
+                {
+				    elem_i->SetValue(X_PHYS, x[jiter]);
+				    jiter= jiter +1;
+                }
 				}
 
 

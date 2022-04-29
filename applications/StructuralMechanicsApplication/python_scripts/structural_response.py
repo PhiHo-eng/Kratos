@@ -4,6 +4,7 @@ from KratosMultiphysics import Parameters, Logger
 from KratosMultiphysics.response_functions.response_function_interface import ResponseFunctionInterface
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
+import KratosMultiphysics.TopologyOptimizationApplication as kto
 
 import time as timer
 
@@ -91,6 +92,21 @@ class StrainEnergyResponseFunction(ResponseFunctionInterface):
         for node in self.primal_model_part.Nodes:
             gradient[node.Id] = node.GetSolutionStepValue(variable)
         return gradient
+    
+    def GetElementalGradient(self, variable):
+        if variable not in [
+                            StructuralMechanicsApplication.YOUNG_MODULUS_SENSITIVITY,
+                            StructuralMechanicsApplication.THICKNESS_SENSITIVITY,
+                            StructuralMechanicsApplication.I22_SENSITIVITY,
+                            StructuralMechanicsApplication.I33_SENSITIVITY,
+                            ]:
+            raise RuntimeError("GetElementalGradient: No gradient for {}!".format(variable.Name))
+        gradient = {}
+        for element in self.primal_model_part.Elements:
+            gradient[element.Id] = element.GetValue(variable)
+            #gradient[element.Id] = element.GetSolutionStepValue(variable)
+        return gradient
+
 
 # ==============================================================================
 class EigenFrequencyResponseFunction(StrainEnergyResponseFunction):
@@ -135,6 +151,7 @@ class EigenFrequencyResponseFunction(StrainEnergyResponseFunction):
 
         self.primal_analysis = StructuralMechanicsAnalysis(model, ProjectParametersPrimal)
         self.primal_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SHAPE_SENSITIVITY)
+        #self.primal_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.YOUNGS_MODULUS_SENSITIVITY)
 
         self.response_function_utility = StructuralMechanicsApplication.EigenfrequencyResponseFunctionUtility(self.primal_model_part, response_settings)
 
@@ -213,6 +230,19 @@ class MassResponseFunction(ResponseFunctionInterface):
             gradient[node.Id] = node.GetSolutionStepValue(variable)
         return gradient
 
+    def GetElementalGradient(self, variable):
+        if variable not in [
+                            StructuralMechanicsApplication.YOUNG_MODULUS_SENSITIVITY,
+                            StructuralMechanicsApplication.THICKNESS_SENSITIVITY,
+                            StructuralMechanicsApplication.I22_SENSITIVITY,
+                            StructuralMechanicsApplication.I33_SENSITIVITY,
+                            ]:
+            raise RuntimeError("GetElementalGradient: No gradient for {}!".format(variable.Name))
+        gradient = {}
+        for element in self.model_part.Elements:
+            gradient[element.Id] = element.GetValue(variable)
+        return gradient
+
 # ==============================================================================
 class AdjointResponseFunction(ResponseFunctionInterface):
     """Linear static adjoint strain energy response function.
@@ -244,7 +274,7 @@ class AdjointResponseFunction(ResponseFunctionInterface):
         adjoint_parameters = self._GetAdjointParameters()
         adjoint_model = KratosMultiphysics.Model()
         self.adjoint_model_part = _GetModelPart(adjoint_model, adjoint_parameters["solver_settings"])
-
+        
         # TODO find out why it is not possible to use the same model_part
         self.adjoint_analysis = StructuralMechanicsAnalysis(adjoint_model, adjoint_parameters)
 
@@ -278,6 +308,14 @@ class AdjointResponseFunction(ResponseFunctionInterface):
         # synchronize the modelparts
         self._SynchronizeAdjointFromPrimal()
         startTime = timer.time()
+        #get the response type 
+        response_type = self.response_settings["response_type"].GetString()
+        if (response_type == "adjoint_max_stress_topology"):
+            for element_i in self.adjoint_model_part.Elements:
+                    Id = element_i.Id
+                    element_i.SetValue(kto.X_PHYS, self.primal_model_part.Elements[Id].GetValue(kto.X_PHYS))
+                    element_i.SetValue(kto.PENAL, self.primal_model_part.Elements[Id].GetValue(kto.PENAL))
+                    element_i.SetValue(KratosMultiphysics.YOUNG_MODULUS, self.primal_model_part.Elements[Id].GetValue(KratosMultiphysics.YOUNG_MODULUS))
         Logger.PrintInfo(self._GetLabel(), "Starting adjoint analysis for response:", self.identifier)
         if not self.adjoint_analysis.time < self.adjoint_analysis.end_time:
             self.adjoint_analysis.end_time += 1
@@ -293,6 +331,20 @@ class AdjointResponseFunction(ResponseFunctionInterface):
         gradient = {}
         for node in self.adjoint_model_part.Nodes:
             gradient[node.Id] = node.GetSolutionStepValue(variable)
+        return gradient
+
+    def GetElementalGradient(self, variable):
+        if variable not in [
+                            StructuralMechanicsApplication.YOUNG_MODULUS_SENSITIVITY,
+                            StructuralMechanicsApplication.THICKNESS_SENSITIVITY,
+                            StructuralMechanicsApplication.I22_SENSITIVITY,
+                            StructuralMechanicsApplication.I33_SENSITIVITY,
+                            ]:
+            raise RuntimeError("GetElementalGradient: No gradient for {}!".format(variable.Name))
+        gradient = {}
+        for element in self.adjoint_model_part.Elements:
+            gradient[element.Id] = element.GetValue(variable)
+            #gradient[element.Id] = element.GetSolutionStepValue(variable)
         return gradient
 
     def Finalize(self):
@@ -350,8 +402,9 @@ class AdjointResponseFunction(ResponseFunctionInterface):
             # analysis settings
             solver_settings = adjoint_parameters["solver_settings"]
             primal_solver_type = solver_settings["solver_type"].GetString()
-            if primal_solver_type != "static":
-                raise Exception("Auto setup of adjoint parameters does not support {} solver_type. Only available for 'static'".format(primal_solver_type))
+            if primal_solver_type != "topology_optimization_simp_static_solver": 
+                if primal_solver_type != "static":
+                    raise Exception("Auto setup of adjoint parameters does not support {} solver_type. Only available for 'static'".format(primal_solver_type))
             solver_settings["solver_type"].SetString("adjoint_"+primal_solver_type)
 
             if not solver_settings.Has("compute_reactions"):
@@ -410,6 +463,7 @@ class AdjointResponseFunction(ResponseFunctionInterface):
             "adjoint_linear_strain_energy" : "StrainEnergy",
             "adjoint_local_stress" : "LocalStress",
             "adjoint_max_stress" : "MaxStress",
+            "adjoint_max_stress_topology" : "KSMaxStress",
             "adjoint_nodal_reaction" : "NodalReaction"
         }
         response_type = self.response_settings["response_type"].GetString()

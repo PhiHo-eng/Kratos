@@ -100,6 +100,12 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication()
       mSmallDisplacement3D20N(0, Element::GeometryType::Pointer(new Hexahedra3D20<NodeType >(Element::GeometryType::PointsArrayType(20)))),
       mSmallDisplacement3D27N(0, Element::GeometryType::Pointer(new Hexahedra3D27<NodeType >(Element::GeometryType::PointsArrayType(27)))),
 
+      //TopologyOptimization
+      mSmallDisplacementSIMPElementStructural3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <NodeType>( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
+      mSmallDisplacementSIMPElementStructural3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <NodeType >( Element::GeometryType::PointsArrayType( 4 ) ) ) ),
+      mSmallDisplacementSIMPElementStructural3D8N( 0, Element::GeometryType::Pointer( new Hexahedra3D8 <NodeType >( Element::GeometryType::PointsArrayType( 8 ) ) ) ),
+      mAdjointSmallDisplacementSIMPElementStructural3D8N( 0, Element::GeometryType::Pointer(new Hexahedra3D8<NodeType >(Element::GeometryType::PointsArrayType(8)))),
+
       mSmallDisplacementBbar2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<NodeType>(Element::GeometryType::PointsArrayType(4)))),
       mSmallDisplacementBbar3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<NodeType>(Element::GeometryType::PointsArrayType(8)))),
 
@@ -448,6 +454,23 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE(IMPOSED_Z_STRAIN_VALUE)
     KRATOS_REGISTER_VARIABLE(IMPOSED_Z_STRAIN_OPTION)
 
+    //TopologyOptimization
+    KRATOS_REGISTER_VARIABLE( YOUNGS_MODULUS_MIN)
+    KRATOS_REGISTER_VARIABLE( YOUNGS_MODULUS_0 )
+    KRATOS_REGISTER_VARIABLE( PENAL )
+    KRATOS_REGISTER_VARIABLE( X_PHYS )
+    KRATOS_REGISTER_VARIABLE( X_PHYS_OLD )
+    KRATOS_REGISTER_VARIABLE( DCDX )
+    KRATOS_REGISTER_VARIABLE( DCDX_COMPLIANT )
+    KRATOS_REGISTER_VARIABLE( DVDX )
+    KRATOS_REGISTER_VARIABLE( SOLID_VOID )
+    KRATOS_REGISTER_VARIABLE( LOCAL_STRAIN_ENERGY )
+    KRATOS_REGISTER_VARIABLE( LOCAL_STRAIN_ENERGY_COMPLIANT )
+    KRATOS_REGISTER_VARIABLE( INITIAL_ELEMENT_SIZE )
+    KRATOS_REGISTER_VARIABLE( YOUNGS_MODULUS_SENSITIVITY )
+    KRATOS_REGISTER_VARIABLE( MAX_MEAN_STRESS )
+    KRATOS_REGISTER_VARIABLE( LAMBDA_ADJOINT )
+
     //Register the truss element
     KRATOS_REGISTER_ELEMENT("TrussElement3D2N", mTrussElement3D2N)
     KRATOS_REGISTER_ELEMENT("TrussLinearElement3D2N", mTrussLinearElement3D2N)
@@ -500,6 +523,12 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("SmallDisplacementElement3D15N", mSmallDisplacement3D15N)
     KRATOS_REGISTER_ELEMENT("SmallDisplacementElement3D20N", mSmallDisplacement3D20N)
     KRATOS_REGISTER_ELEMENT("SmallDisplacementElement3D27N", mSmallDisplacement3D27N)
+
+    //TopologyOptimization
+    KRATOS_REGISTER_ELEMENT( "SmallDisplacementSIMPElementStructural3D3N",  mSmallDisplacementSIMPElementStructural3D3N ) // dummy element for surface representation
+    KRATOS_REGISTER_ELEMENT( "SmallDisplacementSIMPElementStructural3D4N", mSmallDisplacementSIMPElementStructural3D4N )
+    KRATOS_REGISTER_ELEMENT( "SmallDisplacementSIMPElementStructural3D8N", mSmallDisplacementSIMPElementStructural3D8N )
+    KRATOS_REGISTER_ELEMENT( "AdjointSmallDisplacementSIMPElementStructural3D8N", mAdjointSmallDisplacementSIMPElementStructural3D8N );
 
     KRATOS_REGISTER_ELEMENT("SmallDisplacementMixedVolumetricStrainElement2D3N", mSmallDisplacementMixedVolumetricStrainElement2D3N)
     KRATOS_REGISTER_ELEMENT("SmallDisplacementMixedVolumetricStrainElement2D4N", mSmallDisplacementMixedVolumetricStrainElement2D4N)

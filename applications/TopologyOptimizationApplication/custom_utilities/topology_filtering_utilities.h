@@ -155,7 +155,7 @@ public:
     // ---------------------------------------------------------------------------------------------------------------------------------------------
 
     /// With the calculated sensitivities, an additional filter to avoid checkerboard effects is used here
-    void ApplyFilterSensitivity( char FilterType[], char optimization_type[], char FilterFunctionType[] )
+    void ApplyFilterSensitivity( char FilterType[], char optimization_type[], char FilterFunctionType[], int Opt_iter )
     {
 
         KRATOS_TRY;
@@ -222,14 +222,16 @@ public:
                 // This is broken. Bug found when using ResultingSquaredDistances, so we calculate our own distances
                 const int num_nodes_found = MyTree.SearchInRadius(ElemPositionItem,mSearchRadius,Results.begin(),resulting_squared_distances.begin(),mMaxElementsAffected);
 
-
-
                 double Hxdc = 0.0;
                 double Hxdc_sum = 0;
                 double H = 0.0;
                 double H_sum = 0;
                 array_1d<double,3> elemental_distance;
                 double distance = 0.0;
+                double beta_0= 1;
+                double beta_max = 150;
+                double tau = 50;
+                double nu = 0.5;
                 
                 // MIN COMPLIANCE: Filter the sensitivities of the minimum compliance problem
                 if (strcmp( optimization_type , "min_compliance" ) == 0)
@@ -410,6 +412,125 @@ public:
             for(ModelPart::ElementsContainerType::iterator elem_i = mrModelPart.ElementsBegin();
                     elem_i!=mrModelPart.ElementsEnd(); elem_i++)
                 elem_i->SetValue(X_PHYS_OLD, x_phys_filtered[i++]);
+
+            KRATOS_INFO("[TopOpt]") << "  Filtered densities calculated          	[ spent time =  " << timer.ElapsedSeconds() << " ] " << std::endl;
+        }
+        else
+            KRATOS_ERROR << "No valid FilterType selected for the simulation. Selected one: " << FilterType << std::endl;
+
+        KRATOS_CATCH("");
+
+    }
+
+    void ApplyFilterStress( char FilterType[], char FilterFunctionType[], int Opt_iter )
+    {
+
+        KRATOS_TRY;
+
+        // Create object of filter function
+        FilterFunction FilterFunc(FilterFunctionType, mSearchRadius);
+
+        // Function to Filter Sensitivities
+        if ( strcmp( FilterType , "stress" ) == 0 ){
+            BuiltinTimer timer;
+            KRATOS_INFO("[TopOpt]") << "  Stress Sensitivity filter chosen as filter for stresses" << std::endl;
+
+            if ( strcmp( FilterFunctionType , "linear" ) == 0 )
+                KRATOS_INFO("[TopOpt]") << "  Linear filter kernel selected" << std::endl;
+            else
+                KRATOS_ERROR << "No valid FilterFunction selected for the simulation. Selected one: " << FilterFunctionType << std::endl;
+
+            // IMPORTANT: Tree data structure is re-created on each loop, although this has little impact in simulation time/computation,
+            //            it is recommended to declare it in the constructor of the class (i.e. would be calculated just one time)
+
+            // Create placeholder for any element in model. We can assign the center of the element as coordinates to the placeholder
+            ElementPositionVector PositionList;
+            for(ModelPart::ElementsContainerType::iterator elem_i = mrModelPart.ElementsBegin(); elem_i!=mrModelPart.ElementsEnd(); elem_i++)
+            {
+                // Find the center of the element
+                array_1d<double,3> center_coord = ZeroVector(3);
+                Geometry< Node<3> >& geom = elem_i->GetGeometry();
+                for(unsigned int i=0; i<geom.size(); i++)
+                    noalias(center_coord) += (geom[i].GetInitialPosition());
+                center_coord /= static_cast<double>(geom.size());
+
+                // new "ElementPositionItem" for every element and assigns a pointer to the base element *it.base()
+                PointTypePointer pGP = PointTypePointer(new ElementPositionItem( center_coord, *elem_i.base() ) );
+                PositionList.push_back( pGP );
+            }
+
+            // Creates a tree space search structure - It will use a copy of mGaussPoinList (a std::vector which contains pointers)
+            // Note that PositionList will be reordered by the tree for efficiency reasons
+            const int BucketSize = 4;
+            tree MyTree(PositionList.begin(),PositionList.end(),BucketSize);
+
+            ElementPositionVector Results(mMaxElementsAffected);
+            std::vector<double> resulting_squared_distances(mMaxElementsAffected);
+
+            BuiltinTimer timer_tree;
+            KRATOS_INFO("[TopOpt]") << "  Filtered tree created                      [ spent time =  " << timer_tree.ElapsedSeconds() << " ] " << std::endl;
+
+            // Compute filtered densities
+            Vector stress_sensitivity_filtered;
+            stress_sensitivity_filtered.resize(mrModelPart.NumberOfElements());
+            int i = 0;
+            for(ModelPart::ElementsContainerType::iterator elem_i = mrModelPart.ElementsBegin(); elem_i!=mrModelPart.ElementsEnd(); elem_i++)
+            {
+                // Find the center of the element
+                array_1d<double,3> center_coord = ZeroVector(3);
+                Geometry< Node<3> >& geom = elem_i->GetGeometry();
+                array_1d<double,3> disp = ZeroVector(3);
+                for(unsigned int i=0; i<geom.size(); i++)
+                    noalias(center_coord) += (geom[i].GetInitialPosition());
+                center_coord /= static_cast<double>(geom.size());
+
+                ElementPositionItem ElemPositionItem(center_coord,*elem_i.base());
+
+                // This is broken. Bug found when using ResultingSquaredDistances, so we calculate our own distances
+                int num_nodes_found = 0;
+
+                num_nodes_found = MyTree.SearchInRadius(ElemPositionItem,mSearchRadius,Results.begin(),resulting_squared_distances.begin(),mMaxElementsAffected);
+
+
+                double Hxdx = 0.0;
+                double Hxdx_sum = 0;
+                double H = 0.0;
+                double H_sum = 0;
+                array_1d<double,3> elemental_distance;
+                double distance = 0.0;
+                double beta_0= 1;
+                double beta_max = 150;
+                double tau = 50;
+                double nu = 0.5;
+
+                for(int ElementPositionItem_j = 0; ElementPositionItem_j < num_nodes_found; ElementPositionItem_j++)
+                {
+                    // Calculate distances
+                    elemental_distance = ZeroVector(3);
+                    elemental_distance = *Results[ElementPositionItem_j] - center_coord;
+                    distance = std::sqrt(inner_prod(elemental_distance,elemental_distance));
+
+                    // Creation of mesh independent convolution operator (weight factors)
+                    H  = FilterFunc.ComputeWeight(distance);
+                    Hxdx = H*(Results[ElementPositionItem_j]->GetOriginElement()->GetValue(YOUNGS_MODULUS_SENSITIVITY));
+                    H_sum    += H;
+                    Hxdx_sum += Hxdx;
+                }
+
+                // Calculate filtered densities and assign to the elements
+                
+                // Heavyside Projection
+                double x_try = 0;
+                x_try = Hxdx_sum / (H_sum);
+                double beta = std::min(beta_max,beta_0*pow(2,((Opt_iter-1)/tau)));
+                stress_sensitivity_filtered[i++]= ((std::tanh(beta*nu)+std::tanh(beta*(x_try-nu)))/(std::tanh(beta*nu)+std::tanh(beta*(1-nu))));
+            }
+
+            // Overwrite sensitivities with filtered densities
+            i = 0;
+            for(ModelPart::ElementsContainerType::iterator elem_i = mrModelPart.ElementsBegin();
+                    elem_i!=mrModelPart.ElementsEnd(); elem_i++)
+                elem_i->SetValue(YOUNGS_MODULUS_SENSITIVITY, stress_sensitivity_filtered[i++]);
 
             KRATOS_INFO("[TopOpt]") << "  Filtered densities calculated          	[ spent time =  " << timer.ElapsedSeconds() << " ] " << std::endl;
         }

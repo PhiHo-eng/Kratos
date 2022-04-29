@@ -45,6 +45,12 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
         elif solver_type == "prebuckling":
             solver_module_name = "structural_mechanics_prebuckling_solver"
 
+        elif solver_type == "topology_optimization_simp_static_solver":
+            solver_module_name = "topology_optimization_simp_static_solver"
+
+        elif solver_type == "adjoint_topology_optimization_simp_static_solver":
+            solver_module_name = "adjoint_topology_optimization_simp_static_solver"
+
         else:
             available_solver_types = ["static", "dynamic", "eigen_value", "harmonic_analysis", "formfinding", "adjoint_static","prebuckling"]
             try_import_custom_solver = True
@@ -92,6 +98,12 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
 
     else:
         kratos_module = "KratosMultiphysics.StructuralMechanicsApplication"
+
+    if (solver_type == "topology_optimization_simp_static_solver"):
+        kratos_module = "KratosMultiphysics.TopologyOptimizationApplication"
+
+    if (solver_type == "adjoint_topology_optimization_simp_static_solver"):
+        kratos_module = "KratosMultiphysics.TopologyOptimizationApplication"
 
     solver = import_module(kratos_module + "." + solver_module_name).CreateSolver(model, solver_settings)
 

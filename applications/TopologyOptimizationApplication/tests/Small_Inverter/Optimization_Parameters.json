@@ -1,0 +1,65 @@
+{
+    "optimization_parameters" : {
+        "optimization_method"           : "simp_method",
+        "optimization_process"           : "max_compliance",
+        "simp_property"                 :  1,
+        "penalty"                       :  3,
+        "continuation_strategy"         : 0,
+        "initial_volume_fraction"       : 0.3,
+        "density_filter"	            : "density",
+        "filter_type"                   : "sensitivity",
+        "stress_sensitivity_filter"	  : "stress",
+        "filter_kernel"                 : "linear",
+        "filter_radius"     	         :0.0012,
+        "max_elements_in_filter_radius" : 500,
+        "grey_scale_filter"             : 0, 
+        "q_max"                         : 2.0,
+        "optimization_algorithm"        : "mma_algorithm",
+        "max_opt_iterations"            : 2,
+        "relative_tolerance"            : 0.0000000005,      
+        "increasing_obj"                :0,
+        "spring_stiffness_x"             : 100.00,
+        "spring_stiffness_y"             : 0.0,
+        "spring_stiffness_z"             : 0.0,
+        "spring_stiffness_x_pseudo"             : 100.00,
+        "spring_stiffness_y_pseudo"             : 0.0,
+        "spring_stiffness_z_pseudo"             : 0.0,
+        "number_of_elements"            :100,
+        "objectives"    :{
+            "strain_energy":    {
+                "grad"      :"provided"
+            }
+        },
+        "constraints"    :{
+            "volume_fraction":    {
+                "type"      :"eq",
+                "grad"      : "provided"
+            }
+        },
+        "restart_input_file"            : "Small_Cantilever_Hex.mdpa",
+        "restart_output_file"           : "Small_Cantilever_Restart_File.mdpa",
+        "restart_write_frequency"       : 10,
+        "GiD_output_file_name"          : "Topology_Optimization_Results",
+        "nodal_results"                 :["DISPLACEMENT","REACTION"],
+        "gauss_points_results"          :["X_PHYS"],
+        "VolumeOutput"                  : true,
+        "GiDPostMode"                   : "Binary",
+        "GiDWriteMeshFlag"              : false,
+        "GiDWriteConditionsFlag"        : false,
+        "GiDWriteParticlesFlag"         : false,
+        "GiDMultiFileFlag"              : "Single",
+        "result_file_configuration": {
+            "gidpost_flags": {
+                "GiDPostMode": "GiD_PostBinary",
+                "MultiFileFlag": "SingleFile",
+                "WriteConditionsFlag": "WriteElementsOnly",
+                "WriteDeformedMeshFlag": "WriteUndeformed"
+
+            }
+        }
+
+
+
+
+    }
+}

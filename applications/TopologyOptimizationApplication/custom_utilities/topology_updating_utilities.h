@@ -261,12 +261,12 @@ public:
                         element_i->SetValue(X_PHYS, x_new);
 
                         // Updating additional quantities to determine the correct Lagrange Multiplier (lmid)
-                        sum_X_Phys = sum_X_Phys + x_new;
+                        sum_X_Phys = sum_X_Phys + (x_new*initial_volume);
                         domain_size += initial_volume;
                         nele = nele + 1;
                     }
 
-                    if(  sum_X_Phys  -(volfrac*nele) > 0)
+                    if(  sum_X_Phys - (volfrac*domain_size) > 0)
                         l1=lmid;
                     
                     else
