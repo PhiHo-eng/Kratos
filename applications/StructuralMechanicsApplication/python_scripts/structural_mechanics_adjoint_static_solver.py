@@ -122,7 +122,6 @@ class StructuralMechanicsAdjointStaticSolver(MechanicalSolver):
 
         super().Initialize()
         self.response_function.Initialize()
-        print("Bin hier")
 
         KratosMultiphysics.Logger.PrintInfo("::[AdjointMechanicalSolver]:: ", "Finished initialization.")
 

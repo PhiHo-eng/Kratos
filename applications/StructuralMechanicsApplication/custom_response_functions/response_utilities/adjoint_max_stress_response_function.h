@@ -173,6 +173,7 @@ private:
     StressTreatment mStressTreatment;
     TracedStressType mTracedStressType;
     SizeType mEchoLevel = 0;
+    double q_relaxation = 1.0;
 
 
     ///@}

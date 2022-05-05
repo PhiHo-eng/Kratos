@@ -29,6 +29,7 @@ import os
 # For GID output
 #from KratosMultiphysics import gid_output
 from KratosMultiphysics.gid_output_process import GiDOutputProcess
+from KratosMultiphysics.vtk_output_process import VtkOutputProcess
 
 # Further necessary imports
 import csv
@@ -78,6 +79,30 @@ class SIMPMethod:
                                         }
                                     }
                                     """))
+
+        vtk_parameters = km.Parameters(
+            """
+            {
+            "model_part_name": "",
+            "output_control_type": "step",
+            "output_interval": 1,
+            "file_format": "ascii",
+            "output_precision": 7,
+            "output_sub_model_parts": false,
+            "output_path": "vtk_output",
+            "save_output_files_in_folder": true,
+            "nodal_solution_step_data_variables" : ["DISPLACEMENT","REACTION"],
+            "nodal_data_value_variables": [],
+            "element_data_value_variables": ["X_PHYS","VON_MISES_STRESS"],
+            "condition_data_value_variables": [],
+            "gauss_point_variables_extrapolated_to_nodes": []
+            }
+            """
+        )
+        vtk_parameters['model_part_name'].SetString(opt_model_part.Name)
+        self.vtk_io = VtkOutputProcess(
+            opt_model_part.GetModel(), vtk_parameters
+        )
         # Set analyzer
         self.analyzer = analyzer
 
@@ -224,6 +249,10 @@ class SIMPMethod:
         self.gid_io.ExecuteInitialize()
         self.gid_io.ExecuteBeforeSolutionLoop()
         
+        #VTK output
+        self.vtk_io.ExecuteInitialize()
+        self.vtk_io.ExecuteBeforeSolutionLoop()
+        
 
         # Call for the specified optimization algorithm
         if(self.config["optimization_algorithm"].GetString() == "oc_algorithm"):
@@ -239,6 +268,11 @@ class SIMPMethod:
         self.gid_io.PrintOutput()
         self.gid_io.ExecuteFinalizeSolutionStep()
         self.gid_io.ExecuteFinalize()
+
+        #VTK output
+        self.vtk_io.PrintOutput()
+        self.vtk_io.ExecuteFinalizeSolutionStep()
+        self.vtk_io.ExecuteFinalize()        
 
         # Stop timer
         opt_end_time = time.time()
@@ -356,7 +390,35 @@ class SIMPMethod:
                                                                    opt_itr,
                                                                    self.config["q_max"].GetDouble() )
 
+            #Update all X_PHYS of the pseudo load case of the compliant mechanism
+            if (self.config["optimization_process"].GetString()=="max_compliance"):
+                for element_i in self.pseudo_model_part.Elements:
+                    Id = element_i.Id
+                    if (Id >  self.config["number_of_elements"].GetInt()):
+                        Id = 1
+                    element_i.SetValue(kto.X_PHYS, self.opt_model_part.Elements[Id].GetValue(kto.X_PHYS))
 
+            """ if (self.config["optimization_process"].GetString()=="max_compliance"):
+                for element_i in self.model.Elements:
+                    Id = element_i.Id
+                    if (Id >  self.config["number_of_elements"].GetInt()):
+                        Id = 1
+                    element_i.SetValue(kto.X_PHYS, self.opt_model_part.Elements[Id].GetValue(kto.X_PHYS)) """
+
+            maximum_change = 0
+
+            # Update the variable X_PHYS_OLD for the optimization process and the convergance criteria
+            for element_i in self.opt_model_part.Elements:
+                Id =element_i.Id
+                if (Id < self.config["number_of_elements"].GetInt()):
+                    x_old = element_i.GetValue(kto.X_PHYS_OLD)
+                    x_new = element_i.GetValue(kto.X_PHYS)
+                    if(element_i in self.opt_model_part.GetSubModelPart("solid_elements").Elements):
+                        maximum_change = maximum_change
+                    else:
+                        if(abs(x_new-x_old)>maximum_change):
+                            maximum_change = abs(x_new-x_old)
+                    element_i.SetValue(kto.X_PHYS_OLD, element_i.GetValue(kto.X_PHYS))
 
             
 
@@ -421,7 +483,8 @@ class SIMPMethod:
                     break
 
                 # Check for relative tolerance
-                if(abs(Obj_Function_relative_change)<self.config["relative_tolerance"].GetDouble()):
+                #if(abs(Obj_Function_relative_change)<self.config["relative_tolerance"].GetDouble()):
+                if(abs(volume[opt_itr-1]-volume[opt_itr-2])<self.config["relative_tolerance"].GetDouble()):
                     end_time = time.time()
                     km.Logger.Print("\n  Time needed for current optimization step = ",round(end_time - start_time,1),"s")
                     km.Logger.Print("  Time needed for total optimization so far = ",round(end_time - self.opt_start_time,1),"s")
@@ -430,28 +493,6 @@ class SIMPMethod:
                     print("Objective function: ", objective)
                     print("Objective function: ", volume)
                     break
-            
-            #Update all X_PHYS of the pseudo load case of the compliant mechanism
-            if (self.config["optimization_process"].GetString()=="max_compliance"):
-                for element_i in self.pseudo_model_part.Elements:
-                    Id = element_i.Id
-                    if (Id >  self.config["number_of_elements"].GetInt()):
-                        Id = 1
-                    element_i.SetValue(kto.X_PHYS, self.opt_model_part.Elements[Id].GetValue(kto.X_PHYS))
-
-            """ if (self.config["optimization_process"].GetString()=="max_compliance"):
-                for element_i in self.model.Elements:
-                    Id = element_i.Id
-                    if (Id >  self.config["number_of_elements"].GetInt()):
-                        Id = 1
-                    element_i.SetValue(kto.X_PHYS, self.opt_model_part.Elements[Id].GetValue(kto.X_PHYS)) """
-
-            # Update the variable X_PHYS_OLD for the optimization process and the convergance criteria
-            for element_i in self.opt_model_part.Elements:
-                Id =element_i.Id
-                if (Id < self.config["number_of_elements"].GetInt()):
-                    element_i.SetValue(kto.X_PHYS_OLD, element_i.GetValue(kto.X_PHYS))
-
 
             # Take time needed for current optimization step
             end_time = time.time()

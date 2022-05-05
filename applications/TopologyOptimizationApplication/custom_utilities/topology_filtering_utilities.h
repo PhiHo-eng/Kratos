@@ -273,6 +273,10 @@ public:
 
                 // Calculate filtered sensitivities and assign to the elements
                 dcdx_filtered[i++] = Hxdc_sum / (H_sum*std::max(0.001,elem_i->GetValue(X_PHYS)) );
+                if ( std::isnan(dcdx_filtered[i]))
+                {
+                    KRATOS_ERROR << "The nan comes from the Element in sensitivity filter: " <<dcdx_filtered[i] <<std::endl;
+                }    
             }
 
             // Overwrite sensitivities with filtered sensitivities
@@ -405,6 +409,10 @@ public:
                 x_try = Hxdx_sum / (H_sum);
                 double beta = std::min(beta_max,beta_0*pow(2,((Opt_iter-1)/tau)));
                 x_phys_filtered[i++]= ((std::tanh(beta*nu)+std::tanh(beta*(x_try-nu)))/(std::tanh(beta*nu)+std::tanh(beta*(1-nu))));
+                if ( std::isnan(x_phys_filtered[i]))
+                {
+                    KRATOS_ERROR << "The nan comes from the Element in density filter: " <<x_phys_filtered[i] <<std::endl;
+                }                
             }
 
             // Overwrite sensitivities with filtered densities

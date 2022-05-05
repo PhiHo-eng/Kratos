@@ -114,6 +114,11 @@ public:
             element_i->Calculate(LOCAL_STRAIN_ENERGY_COMPLIANT, Out, mr_structure_model_part.GetProcessInfo());
 
             Global_Strain_Energy += element_i->GetValue(LOCAL_STRAIN_ENERGY_COMPLIANT);
+
+            //if ( std::isnan(Global_Strain_Energy))
+            //{
+              //  KRATOS_INFO("[TopOpt]") << "  OOOOOO Shit in structure"<<Global_Strain_Energy << std::endl;
+            //}
             
         }
 

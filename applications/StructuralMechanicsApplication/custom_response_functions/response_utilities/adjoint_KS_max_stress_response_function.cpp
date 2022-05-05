@@ -140,6 +140,37 @@ namespace Kratos
             pElem->Calculate(STRESS_DISP_DERIV_ON_GP,
                              stress_displacement_derivative,
                              rProcessInfo);
+            int iteration = 0;
+            int num_of_derivatives_per_stress = stress_displacement_derivative.size1();
+            int num_of_stress_positions = stress_displacement_derivative.size2();
+            
+            for (IndexType deriv_it = 0 ; deriv_it < num_of_derivatives_per_stress; ++deriv_it)
+            {
+                for(IndexType stress_it = 0; stress_it < num_of_stress_positions; ++stress_it)
+                {
+                    
+                    //Check if nan
+                    if ( std::isnan(stress_displacement_derivative(deriv_it, stress_it)))
+                    {
+                        iteration = 1;
+                        KRATOS_INFO("[TopOpt]") << "pks parameter is (in step I): "<<pKS << std::endl;
+                        KRATOS_INFO("[TopOpt]") << "max mean stress is (in step I): "<<max_mean_stress << std::endl;
+                        KRATOS_INFO("[TopOpt]") << "KS approximated stress is (in step I): "<<KS_exp_sum << std::endl;
+                        KRATOS_INFO("[TopOpt]") << "q_relaxiation is (in step I): "<<q_relaxation << std::endl;
+                        KRATOS_INFO("[TopOpt]") << "Number of iteration (in step I): "<<iteration<< std::endl;
+                        if (rAdjointElement.Id()==17850)
+                        {
+                            KRATOS_ERROR << "The value of the gradient is nan and the element Id is: " <<stress_displacement_derivative <<std::endl;
+                        }
+
+                        KRATOS_INFO("[TopOpt]") << "The value of the gradient is nan and the element Id is: " <<deriv_it<<" and "<< stress_it <<std::endl;
+                    }
+                }
+            }
+            if (iteration==1)
+            {
+                KRATOS_INFO("[TopOpt]") << "STRESS SENSITIVITY DERIVATIVE (in step I): "<<stress_displacement_derivative<< std::endl;
+            }
             this->ExtractMeanStressDerivative(stress_displacement_derivative,
                                               rResponseGradient);
 
@@ -151,6 +182,28 @@ namespace Kratos
             //KRATOS_INFO("[TopOpt]") << "  \nResponse Gradient rResponseGradient with ID: "<<rAdjointElement.Id() <<" is:\n "<<rResponseGradient<< std::endl;
             //KRATOS_INFO("[TopOpt]") << "  \nThe stress displacement derivative 'stress_displacement_derivative' with ID: "<<rAdjointElement.Id() <<" is:\n "<<stress_displacement_derivative << std::endl;
             rResponseGradient *= ((-1) *std::exp(pKS*(mean_stress_vector[rAdjointElement.Id()]-max_mean_stress))/KS_exp_sum)*std::pow(x_phys, q_relaxation);
+            int i = 0;
+            int j = 0;
+            for (i=0; i<rResidualGradient.size1();i++)
+            {
+                for (j=0; j<rResidualGradient.size2(); j++)
+                {
+                    if ( std::isnan(rResidualGradient(i,j)))
+                    {
+                        KRATOS_INFO("[TopOpt]") << "The Sensitivity Matrix is (in step I): "<<rResidualGradient << std::endl;
+                        KRATOS_INFO("[TopOpt]") << "The Sensetivity Gradient is (in step I): "<<rResponseGradient << std::endl;
+                        KRATOS_INFO("[TopOpt]") << "Mean stress is (in step I): "<<mean_stress_vector[rAdjointElement.Id()] << std::endl;
+                        KRATOS_INFO("[TopOpt]") << "pks parameter is (in step I): "<<pKS << std::endl;
+                        KRATOS_INFO("[TopOpt]") << "max mean stress is (in step I): "<<max_mean_stress << std::endl;
+                        KRATOS_INFO("[TopOpt]") << "x_pys is (in step I): "<<x_phys << std::endl;
+                        KRATOS_INFO("[TopOpt]") << "KS approximated stress is (in step I): "<<KS_exp_sum << std::endl;
+                        KRATOS_INFO("[TopOpt]") << "q_relaxiation is (in step I): "<<q_relaxation << std::endl;
+                        KRATOS_INFO("[TopOpt]") << "Column line is (in step I): "<< i <<" and "<< j << std::endl;
+
+                        KRATOS_ERROR << "The value of the gradient is nan and the element Id is: " <<rAdjointElement.Id() <<std::endl;
+                    }
+                }
+            }
         }
         else
         {
@@ -185,6 +238,28 @@ namespace Kratos
             //KRATOS_INFO("[TopOpt]") << "  \nThe Variable Name for ID : "<<rAdjointElement.Id()<<" is: "<< rVariable.Name() << std::endl;
             rSensitivityGradient *= (std::exp(pKS*(mean_stress_vector[rAdjointElement.Id()]-max_mean_stress))/KS_exp_sum)*mean_stress_vector[rAdjointElement.Id()]*q_relaxation*std::pow(x_phys, q_relaxation-1);
             //KRATOS_INFO("[TopOpt]") << "  \nThe Sensitivity Gradient rSensitivityGradient after KS for ID : "<<rAdjointElement.Id()<<" is:\n "<< rSensitivityGradient << std::endl;
+            double nan_variable = rSensitivityGradient[0];
+            int i = 0;
+            for (i=0; i<rSensitivityGradient.size();i++)
+            {
+                if ( std::isnan(rSensitivityGradient[i]))
+                {
+                    KRATOS_INFO("[TopOpt]") << "The Sensitivity Matrix is(in step II): "<<rSensitivityMatrix << std::endl;
+                    KRATOS_INFO("[TopOpt]") << "The Sensetivity Gradient is (in step II): "<<rSensitivityGradient << std::endl;
+                    KRATOS_INFO("[TopOpt]") << "Mean stress is (in step II): "<<mean_stress_vector[rAdjointElement.Id()] << std::endl;
+                    KRATOS_INFO("[TopOpt]") << "pks parameter is (in step II): "<<pKS << std::endl;
+                    KRATOS_INFO("[TopOpt]") << "max mean stress is (in step II): "<<max_mean_stress << std::endl;
+                    KRATOS_INFO("[TopOpt]") << "x_pys is (in step II): "<<x_phys << std::endl;
+                    KRATOS_INFO("[TopOpt]") << "KS approximated stress is (in step II): "<<KS_exp_sum << std::endl;
+                    KRATOS_INFO("[TopOpt]") << "q_relaxiation is (in step II): "<<q_relaxation << std::endl;
+
+                    KRATOS_ERROR << "The value of the gradient is nan and the element Id is: " <<rAdjointElement.Id() <<std::endl;
+                }
+            }
+            if ( std::isnan(nan_variable))
+                {
+                    KRATOS_INFO("[TopOpt]") << "  \nThe value of the gradient is nan and the element Id is : "<<rAdjointElement.Id() << std::endl;
+                }
         }
         else
             rSensitivityGradient = ZeroVector(rSensitivityMatrix.size1());
@@ -230,6 +305,23 @@ namespace Kratos
             //KRATOS_INFO("[TopOpt]") << "  \nThe Variable name rVariable.Name() for ID : "<<rAdjointElement.Id()<<" is: "<< rVariable.Name() << std::endl;
 
             rSensitivityGradient *= (std::exp(pKS*(mean_stress_vector[rAdjointElement.Id()]-max_mean_stress))/KS_exp_sum)*mean_stress_vector[rAdjointElement.Id()]*q_relaxation*std::pow(x_phys,q_relaxation-1);
+            int i = 0;
+            for (i=0; i<rSensitivityGradient.size();i++)
+            {
+                if ( std::isnan(rSensitivityGradient[i]))
+                {
+                    KRATOS_INFO("[TopOpt]") << "The Sensitivity Matrix is (in step III): "<<rSensitivityMatrix << std::endl;
+                    KRATOS_INFO("[TopOpt]") << "The Sensetivity Gradient is (in step III): "<<rSensitivityGradient << std::endl;
+                    KRATOS_INFO("[TopOpt]") << "Mean stress is (in step III): "<<mean_stress_vector[rAdjointElement.Id()] << std::endl;
+                    KRATOS_INFO("[TopOpt]") << "pks parameter is (in step III): "<<pKS << std::endl;
+                    KRATOS_INFO("[TopOpt]") << "max mean stress is (in step III): "<<max_mean_stress << std::endl;
+                    KRATOS_INFO("[TopOpt]") << "x_pys is (in step III): "<<x_phys << std::endl;
+                    KRATOS_INFO("[TopOpt]") << "KS approximated stress is (in step III): "<<KS_exp_sum << std::endl;
+                    KRATOS_INFO("[TopOpt]") << "q_relaxiation is (in step III): "<<q_relaxation << std::endl;
+
+                    KRATOS_ERROR << "The value of the gradient is nan and the element Id is: " <<rAdjointElement.Id() <<std::endl;
+                }
+            }
         }
         else
             rSensitivityGradient = ZeroVector(rSensitivityMatrix.size1());
@@ -292,8 +384,21 @@ namespace Kratos
         for (IndexType deriv_it = 0 ; deriv_it < num_of_derivatives_per_stress; ++deriv_it)
         {
             for(IndexType stress_it = 0; stress_it < num_of_stress_positions; ++stress_it)
+            {
                 stress_derivative_value += rStressDerivativesMatrix(deriv_it, stress_it);
+                
+                //Check if nan
+                if ( std::isnan(rStressDerivativesMatrix(deriv_it, stress_it)))
+                {
+                    KRATOS_INFO("[TopOpt]") << "pks parameter is (in step IIII): "<<pKS << std::endl;
+                    KRATOS_INFO("[TopOpt]") << "max mean stress is (in step IIII): "<<max_mean_stress << std::endl;
+                    KRATOS_INFO("[TopOpt]") << "KS approximated stress is (in step IIII): "<<KS_exp_sum << std::endl;
+                    KRATOS_INFO("[TopOpt]") << "q_relaxiation is (in step IIII): "<<q_relaxation << std::endl;
+                    KRATOS_INFO("[TopOpt]") << "Number of stress positions (in step IIII): "<<num_of_stress_positions << std::endl;
 
+                    KRATOS_INFO("[TopOpt]") << "The value of the gradient is nan and the element Id is: " <<rStressDerivativesMatrix(deriv_it, stress_it) <<std::endl;
+                }
+            }
             stress_derivative_value /= num_of_stress_positions;
 
             rResponseGradient[deriv_it] = stress_derivative_value;

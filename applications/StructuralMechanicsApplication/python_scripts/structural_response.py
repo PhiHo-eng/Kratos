@@ -1,4 +1,5 @@
 # importing the Kratos Library
+import math
 import KratosMultiphysics
 from KratosMultiphysics import Parameters, Logger
 from KratosMultiphysics.response_functions.response_function_interface import ResponseFunctionInterface
@@ -285,7 +286,15 @@ class AdjointResponseFunction(ResponseFunctionInterface):
 
     def Initialize(self):
         self.primal_analysis.Initialize()
+        for element_i in self.adjoint_model_part.Elements:
+                Id = element_i.Id
+                if (math.isnan(element_i.GetValue(StructuralMechanicsApplication.YOUNG_MODULUS_SENSITIVITY))):
+                        raise RuntimeError("Hier schon nan in young_modulus_sens before initialize():",element_i.Id)
         self.adjoint_analysis.Initialize()
+        for element_i in self.adjoint_model_part.Elements:
+                Id = element_i.Id
+                if (math.isnan(element_i.GetValue(StructuralMechanicsApplication.YOUNG_MODULUS_SENSITIVITY))):
+                        raise RuntimeError("Hier schon nan in young_modulus_sens nach initialize():",element_i.Id)
 
     def InitializeSolutionStep(self):
         # Run the primal analysis.
@@ -294,19 +303,43 @@ class AdjointResponseFunction(ResponseFunctionInterface):
         startTime = timer.time()
         if not self.primal_analysis.time < self.primal_analysis.end_time:
             self.primal_analysis.end_time += 1
+        for element_i in self.adjoint_model_part.Elements:
+                Id = element_i.Id
+                if (math.isnan(element_i.GetValue(StructuralMechanicsApplication.YOUNG_MODULUS_SENSITIVITY))):
+                        raise RuntimeError("Hier schon nan in young_modulus_sens before RunSolutionLoop():",element_i.Id)
         self.primal_analysis.RunSolutionLoop()
+        for element_i in self.adjoint_model_part.Elements:
+                Id = element_i.Id
+                if (math.isnan(element_i.GetValue(StructuralMechanicsApplication.YOUNG_MODULUS_SENSITIVITY))):
+                        raise RuntimeError("Hier schon nan in young_modulus_sens nach RunSolutionLoop():",element_i.Id)
         Logger.PrintInfo(self._GetLabel(), "Time needed for solving the primal analysis = ",round(timer.time() - startTime,2),"s")
 
     def CalculateValue(self):
         startTime = timer.time()
+        for element_i in self.adjoint_model_part.Elements:
+                Id = element_i.Id
+                if (math.isnan(element_i.GetValue(StructuralMechanicsApplication.YOUNG_MODULUS_SENSITIVITY))):
+                        raise RuntimeError("Hier schon nan in young_modulus_sens before _GetResponseFunctionUtility():",element_i.Id)
         value = self._GetResponseFunctionUtility().CalculateValue(self.primal_model_part)
+        for element_i in self.adjoint_model_part.Elements:
+                Id = element_i.Id
+                if (math.isnan(element_i.GetValue(StructuralMechanicsApplication.YOUNG_MODULUS_SENSITIVITY))):
+                        raise RuntimeError("Hier schon nan in young_modulus_sens nach _GetResponseFunctionUtility():",element_i.Id)
         Logger.PrintInfo(self._GetLabel(), "Time needed for calculating the response value = ",round(timer.time() - startTime,2),"s")
 
         self.primal_model_part.ProcessInfo[StructuralMechanicsApplication.RESPONSE_VALUE] = value
 
     def CalculateGradient(self):
         # synchronize the modelparts
+        for element_i in self.adjoint_model_part.Elements:
+                Id = element_i.Id
+                if (math.isnan(element_i.GetValue(StructuralMechanicsApplication.YOUNG_MODULUS_SENSITIVITY))):
+                        raise RuntimeError("Hier schon nan in young_modulus_sens before _SynchronizeAdjointFromPrimal():",element_i.Id)
         self._SynchronizeAdjointFromPrimal()
+        for element_i in self.adjoint_model_part.Elements:
+                Id = element_i.Id
+                if (math.isnan(element_i.GetValue(StructuralMechanicsApplication.YOUNG_MODULUS_SENSITIVITY))):
+                        raise RuntimeError("Hier schon nan in young_modulus_sens nach _SynchronizeAdjointFromPrimal():",element_i.Id)
         startTime = timer.time()
         #get the response type 
         response_type = self.response_settings["response_type"].GetString()
@@ -316,10 +349,26 @@ class AdjointResponseFunction(ResponseFunctionInterface):
                     element_i.SetValue(kto.X_PHYS, self.primal_model_part.Elements[Id].GetValue(kto.X_PHYS))
                     element_i.SetValue(kto.PENAL, self.primal_model_part.Elements[Id].GetValue(kto.PENAL))
                     element_i.SetValue(KratosMultiphysics.YOUNG_MODULUS, self.primal_model_part.Elements[Id].GetValue(KratosMultiphysics.YOUNG_MODULUS))
+                    if (math.isnan(element_i.GetValue(kto.X_PHYS))):
+                        raise RuntimeError("Hier schon nan in structural_response bei x_phys:",element_i.Id)
+                    if (math.isnan(element_i.GetValue(kto.PENAL))):
+                        raise RuntimeError("Hier schon nan in structural_response bei penal:",element_i.Id)
+                    if (math.isnan(element_i.GetValue(KratosMultiphysics.YOUNG_MODULUS))):
+                        raise RuntimeError("Hier schon nan in structural_response bei e modul:",element_i.Id)
+
+            for element_i in self.adjoint_model_part.Elements:
+                Id = element_i.Id
+                if (math.isnan(element_i.GetValue(StructuralMechanicsApplication.YOUNG_MODULUS_SENSITIVITY))):
+                        raise RuntimeError("Hier schon nan in young_modulus_sens before loop:",element_i.Id)
+
         Logger.PrintInfo(self._GetLabel(), "Starting adjoint analysis for response:", self.identifier)
         if not self.adjoint_analysis.time < self.adjoint_analysis.end_time:
             self.adjoint_analysis.end_time += 1
         self.adjoint_analysis.RunSolutionLoop()
+        for element_i in self.adjoint_model_part.Elements:
+                Id = element_i.Id
+                if (math.isnan(element_i.GetValue(StructuralMechanicsApplication.YOUNG_MODULUS_SENSITIVITY))):
+                        raise RuntimeError("Hier schon nan in young_modulus_sens nach loop:",element_i.Id)
         Logger.PrintInfo(self._GetLabel(), "Time needed for solving the adjoint analysis = ",round(timer.time() - startTime,2),"s")
 
     def GetValue(self):
@@ -344,6 +393,8 @@ class AdjointResponseFunction(ResponseFunctionInterface):
         gradient = {}
         for element in self.adjoint_model_part.Elements:
             gradient[element.Id] = element.GetValue(variable)
+            if (math.isnan(gradient[element.Id])):
+                raise RuntimeError("Hier schon nan in structural_response bei GetElementGradient:",element.Id)
             #gradient[element.Id] = element.GetSolutionStepValue(variable)
         return gradient
 
@@ -375,7 +426,14 @@ class AdjointResponseFunction(ResponseFunctionInterface):
             variable_utils = KratosMultiphysics.VariableUtils()
             for variable in self.primal_state_variables:
                 variable_utils.CopyModelPartNodalVar(variable, self.primal_model_part, self.adjoint_model_part, 0)
+        for element in self.adjoint_model_part.Elements:
 
+            if (math.isnan(element.GetValue(kto.X_PHYS))):
+                raise RuntimeError("Hier schon nan in structural_response in Synchronize bei x_phys:",element.Id)
+            if (math.isnan(element.GetValue(kto.PENAL))):
+                raise RuntimeError("Hier schon nan in structural_responsein Synchronize bei prnal:",element.Id)
+            if (math.isnan(element.GetValue(KratosMultiphysics.YOUNG_MODULUS))):
+                raise RuntimeError("Hier schon nan in structural_response in Synchronize bei e modul:",element.Id)
 
     def _GetAdjointParameters(self):
 

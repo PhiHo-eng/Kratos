@@ -198,6 +198,21 @@ class MMAAlgorithm
                     if (solid_void > 0 )
                         xval = 1.0;
                     
+                    if ( std::isnan(dfdx))
+                    {
+                        KRATOS_ERROR << "The nan comes from the Element in MMA Object sens: " <<dfdx <<std::endl;
+                    }
+
+                    if ( std::isnan(dgdx))
+                    {
+                        KRATOS_ERROR << "The nan comes from the Element in MMA vol constraint: " <<dgdx <<std::endl;
+                    }
+
+                    if ( std::isnan(max_stress_sensitivity))
+                    {
+                        KRATOS_ERROR << "The nan comes from the Element in MMA stress sens: " <<max_stress_sensitivity <<std::endl;
+                    }
+                    
                     double Xmin = 0;
                     double Xmax = 1;
                     vol_summ = vol_summ + initial_size*xval;

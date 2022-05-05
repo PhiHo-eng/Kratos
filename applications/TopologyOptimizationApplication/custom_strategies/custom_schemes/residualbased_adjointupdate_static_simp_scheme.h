@@ -131,6 +131,27 @@ public:
         const double penalty   = rCurrentElement.GetValue(PENAL);
         const double x_phys    = rCurrentElement.GetValue(X_PHYS);
 
+        if(E_min == 0)
+        {
+            KRATOS_INFO("[TopOpt]") << "In Residual Scheme E Min: "<<E_min<< std::endl;
+        }
+
+        if(E_initial == 0)
+        {
+            KRATOS_INFO("[TopOpt]") << "In Residual Scheme E Initial: "<<E_initial<< std::endl;
+        }
+
+        if(E_current == 0)
+        {
+            KRATOS_INFO("[TopOpt]") << "In Residual Scheme E_current: "<<E_current<< std::endl;
+        }
+
+        if(penalty == 0)
+        {
+            KRATOS_INFO("[TopOpt]") << "In Residual Scheme penalty: "<<penalty<< std::endl;
+        }
+
+
         const double E_new     = (E_min + pow(x_phys, penalty) * (E_initial - E_min));
 
         //Calculate the factor that needs to be multiplied on the RHS and LHS

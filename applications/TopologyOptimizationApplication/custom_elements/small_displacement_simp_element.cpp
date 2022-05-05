@@ -173,6 +173,10 @@ void SmallDisplacementSIMPElement::Calculate(const Variable<double> &rVariable, 
             intermediateVector.resize(NumNodes * 3);
             intermediateVector = prod(trans(lambda), Ke0);
             double lambda_Ke0_ue = inner_prod(intermediateVector, ue);
+            if ( std::isnan(lambda_Ke0_ue))
+            {
+                KRATOS_ERROR << "The nan comes from the Element in TopOPt: " <<lambda <<"and "<< x_phys<<std::endl;
+            }
             
             if (rVariable == DCDX_COMPLIANT)
             {
@@ -217,6 +221,11 @@ void SmallDisplacementSIMPElement::Calculate(const Variable<double> &rVariable, 
     } else if (rVariable == DVDX) {
 		// Calculation of the volume sensitivities DVDX
         double element_size = this->GetValue(INITIAL_ELEMENT_SIZE);
+        if ( std::isnan(element_size))
+        if ( std::isnan(element_size))
+        {
+            KRATOS_ERROR << "The nan comes from the Element in TopOpt from element size: " <<element_size<<std::endl;
+        }
         this->SetValue(DVDX, element_size*1);
 	}
 
