@@ -145,6 +145,7 @@ class SIMPMethod:
                 self.pseudo_model_part.CreateNewElement("NodalConcentratedElement2D1N", number+counter, [ID], opt_model_part.GetProperties()[1])
                 self.pseudo_model_part.Elements[number+counter].SetValue(stm.NODAL_DISPLACEMENT_STIFFNESS,[config["spring_stiffness_x"].GetDouble(),config["spring_stiffness_y"].GetDouble(),config["spring_stiffness_z"].GetDouble()])
                 counter += 1
+                
 
             #for node in self.opt_model_part.GetSubModelPart("PointLoad3D_load_2").Nodes:
              #   ID = node.Id
@@ -219,7 +220,7 @@ class SIMPMethod:
 
         # Add toolbox for topology filtering utilities
         self.filter_utils = kto.TopologyFilteringUtilities( opt_model_part,
-                                                        self.config["filter_radius"].GetDouble(),
+                                                        self.config["filter_radius_sensitivity"].GetDouble(),
                                                         self.config["max_elements_in_filter_radius"].GetInt() )
 
         # Add toolbox for topology updating utilities
@@ -312,7 +313,7 @@ class SIMPMethod:
         # Print the Topology Optimization Settings that will be used in the program
         km.Logger.Print("\n::[Topology Optimization Settings]::")
         km.Logger.Print("  E_min:          ", self.opt_model_part.GetProperties()[self.config["simp_property"].GetInt()].GetValue(kto.YOUNGS_MODULUS_MIN))
-        km.Logger.Print("  Filter radius:  ", self.config["filter_radius"].GetDouble())
+        km.Logger.Print("  Filter radius:  ", self.config["filter_radius_sensitivity"].GetDouble())
         km.Logger.Print("  Penalty factor: ", self.config["penalty"].GetInt())
         km.Logger.Print("  Rel. Tolerance: ", self.config["relative_tolerance"].GetDouble())
         km.Logger.Print("  Volume Fraction:", self.config["initial_volume_fraction"].GetDouble())
@@ -363,7 +364,7 @@ class SIMPMethod:
 
             if (self.config["density_filter"].GetString() == "density"):
                 km.Logger.Print("\n[TopOpt]   ::[Filter Densities]::") 
-                self.filter_utils.ApplyFilterDensity(self.config["density_filter"].GetString() , self.config["filter_kernel"].GetString(), opt_itr )
+                self.filter_utils.ApplyFilterDensity(self.config["density_filter"].GetString() , self.config["filter_kernel"].GetString(), opt_itr, self.config["filter_radius_density"].GetDouble() )
 
             #Filter the stress sensitivities
             #if (self.config["stress_sensitivity_filter"].GetString() == "stress"):
@@ -452,7 +453,7 @@ class SIMPMethod:
             # Continuation Strategy
             if(self.config["continuation_strategy"].GetInt() == 1):
                 km.Logger.Print("  Continuation Strategy for current iteration was ACTIVE")
-                if opt_itr < 20:
+                if opt_itr < 10:
                     for element_i in self.opt_model_part.Elements:
                         element_i.SetValue(kto.PENAL, 1)
                 else:
@@ -483,8 +484,8 @@ class SIMPMethod:
                     break
 
                 # Check for relative tolerance
-                #if(abs(Obj_Function_relative_change)<self.config["relative_tolerance"].GetDouble()):
-                if(abs(volume[opt_itr-1]-volume[opt_itr-2])<self.config["relative_tolerance"].GetDouble()):
+                # if(abs(volume[opt_itr-1]-volume[opt_itr-2])<self.config["relative_tolerance"].GetDouble()):
+                if(abs(Obj_Function_relative_change)<self.config["relative_tolerance"].GetDouble()):   
                     end_time = time.time()
                     km.Logger.Print("\n  Time needed for current optimization step = ",round(end_time - start_time,1),"s")
                     km.Logger.Print("  Time needed for total optimization so far = ",round(end_time - self.opt_start_time,1),"s")

@@ -307,13 +307,15 @@ public:
 
     }
 
-    void ApplyFilterDensity( char FilterType[], char FilterFunctionType[], int Opt_iter )
+    void ApplyFilterDensity( char FilterType[], char FilterFunctionType[], int Opt_iter, double filter_radius )
     {
 
         KRATOS_TRY;
 
+        double filter_radius = 3.0;
+
         // Create object of filter function
-        FilterFunction FilterFunc(FilterFunctionType, mSearchRadius);
+        FilterFunction FilterFunc(FilterFunctionType, filter_radius);
 
         // Function to Filter Sensitivities
         if ( strcmp( FilterType , "density" ) == 0 ){

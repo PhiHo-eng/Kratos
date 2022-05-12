@@ -52,6 +52,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     .def(py::init<ModelPart& >())
     .def("ComputeStrainEnergy", &StructureResponseFunctionUtilities::ComputeStrainEnergy)
     .def("ComputeVolumeFraction", &StructureResponseFunctionUtilities::ComputeVolumeFraction)
+    .def("ComputeDisplacementControlledObjective", &StructureResponseFunctionUtilities::ComputeDisplacementControlledObjective)
     .def("ComputeDisplacement", &StructureResponseFunctionUtilities::ComputeDisplacement)
     ;
 

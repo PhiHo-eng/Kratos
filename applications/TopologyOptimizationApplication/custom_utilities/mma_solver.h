@@ -101,7 +101,7 @@ class MMAAlgorithm
             double domain_size = 0.0;
             double max_mean_stress = 0.0;
             int solid_void = 0;
-            double move = 0.2;//0.05 changed 26.04.
+            double move = 1;//0.05 changed 26.04.
             double max_stress_sens = 0.0;
             double max_vol_constraint = 0.0;
             double max_obj_func = 0.0;
@@ -217,7 +217,7 @@ class MMAAlgorithm
                     double Xmax = 1;
                     vol_summ = vol_summ + initial_size*xval;
                     x[iteration]= xval;
-                    df[iteration]= dfdx;
+                    df[iteration]= dfdx/max_obj_func;
                     dg[iteration*mm +0] =  initial_size/(domain_size*volfrac);
                     dg[iteration*mm +1] = max_stress_sensitivity/50;
                     xmax[iteration] = std::min(Xmax, xval+move);

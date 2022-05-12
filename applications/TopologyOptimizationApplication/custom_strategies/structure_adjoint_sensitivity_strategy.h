@@ -111,7 +111,7 @@ public:
         KRATOS_CATCH("");
     }
 
-        void ComputeDisplacementSensitivities()
+    void ComputeDisplacementSensitivities()
     {
        KRATOS_TRY;
 
@@ -150,6 +150,158 @@ public:
         });
 
         KRATOS_INFO("[TopOpt]") << "  Volume fraction sensitivities computed     [ spent time =  " << timer.ElapsedSeconds() << " ] " << std::endl;
+
+        KRATOS_CATCH("");
+    }
+
+    void ComputeDisplacementControlledSensitivities()
+    {
+       KRATOS_TRY;
+
+        double Out_1 = 0.0;
+        double Out_2 = 0.0;
+        double Out_3 = 0.0;
+
+        int i= 0;
+        const ProcessInfo& ConstProcessInfo= mr_structure_model_part.GetProcessInfo();
+
+        BuiltinTimer timer;
+
+        double displacement_error_1 = 0;
+        double displacement_error_2 = 0;
+        double displacement_error_3 = 0;
+        double displacement_error_4 = 0;
+        double displacement_error_5 = 0;
+        double displacement_error_6 = 0;
+        array_1d<double,3> difference_1= ZeroVector(3);
+        array_1d<double,3> difference_2= ZeroVector(3);
+        array_1d<double,3> difference_3= ZeroVector(3);
+        array_1d<double,3> difference_4= ZeroVector(3);
+        array_1d<double,3> difference_5= ZeroVector(3);
+        array_1d<double,3> difference_6= ZeroVector(3);
+
+        array_1d<double,3> displacement = ZeroVector(3);
+
+        int counter = 0;
+
+        for(ModelPart::NodeIterator it_node = mr_structure_model_part.NodesBegin(); it_node != mr_structure_model_part.NodesEnd(); ++it_node )
+        {
+            //NODE number 1
+            if (counter ==33715) //(counter == 11381 || counter==11383 ||counter ==11393|| counter==11407 ||counter == 11421) //(counter == 177 || counter == 178 || counter == 182) //(counter == 2246 || counter == 2248)//(counter == 29382 || counter==29385 ||counter == 29394|| counter==29404 ||counter == 29416 || counter==29430  ) //
+            {
+                
+
+                displacement = it_node->FastGetSolutionStepValue(DISPLACEMENT);
+                displacement_error_1 = std::sqrt(std::pow(-0.812049128806962+displacement[0],2)+std::pow(3.50266712604163+displacement[1],2)+std::pow(0+displacement[2],2));
+                difference_1[0]=-0.812049128806962+displacement[0];
+                difference_1[1]=3.50266712604163+displacement[1];
+                difference_1[2]=0+displacement[2];
+
+                KRATOS_INFO("[TopOpt]") <<"  Displacement error 1: "<<displacement_error_1 <<std::endl;
+            }
+
+            //NODE number 2
+            if (counter ==18190) //(counter == 11381 || counter==11383 ||counter ==11393|| counter==11407 ||counter == 11421) //(counter == 177 || counter == 178 || counter == 182) //(counter == 2246 || counter == 2248)//(counter == 29382 || counter==29385 ||counter == 29394|| counter==29404 ||counter == 29416 || counter==29430  ) //
+            {
+                
+
+                displacement = it_node->FastGetSolutionStepValue(DISPLACEMENT);
+                displacement_error_2 = std::sqrt(std::pow(-2.14620900011183+displacement[0],2)+std::pow(7.48136870876835+displacement[1],2)+std::pow(0+displacement[2],2));
+                difference_2[0]=-2.14620900011183+displacement[0];
+                difference_2[1]=7.48136870876835+displacement[1];
+                difference_2[2]=0+displacement[2];
+
+                KRATOS_INFO("[TopOpt]") <<"  Displacement error 2: "<<displacement_error_2 <<std::endl;
+            }
+
+            //NODE number 3
+            if (counter ==3369) //(counter == 11381 || counter==11383 ||counter ==11393|| counter==11407 ||counter == 11421) //(counter == 177 || counter == 178 || counter == 182) //(counter == 2246 || counter == 2248)//(counter == 29382 || counter==29385 ||counter == 29394|| counter==29404 ||counter == 29416 || counter==29430  ) //
+            {
+                
+
+                displacement = it_node->FastGetSolutionStepValue(DISPLACEMENT);
+                displacement_error_3 = std::sqrt(std::pow(-4.45937342445258+displacement[0],2)+std::pow(11.8582156396755+displacement[1],2)+std::pow(0+displacement[2],2));
+                difference_3[0]=-4.45937342445258+displacement[0];
+                difference_3[1]=11.8582156396755+displacement[1];
+                difference_3[2]=0+displacement[2];
+
+                KRATOS_INFO("[TopOpt]") <<"  Displacement error 3: "<<displacement_error_3 <<std::endl;
+            }
+
+            //NODE number 4
+            if (counter ==38508) //(counter == 11381 || counter==11383 ||counter ==11393|| counter==11407 ||counter == 11421) //(counter == 177 || counter == 178 || counter == 182) //(counter == 2246 || counter == 2248)//(counter == 29382 || counter==29385 ||counter == 29394|| counter==29404 ||counter == 29416 || counter==29430  ) //
+            {
+                
+
+                displacement = it_node->FastGetSolutionStepValue(DISPLACEMENT);
+                displacement_error_4 = std::sqrt(std::pow(-7.47767034460666+displacement[0],2)+std::pow(11.76331913057+displacement[1],2)+std::pow(0+displacement[2],2));
+                difference_4[0]=-7.47767034460666+displacement[0];
+                difference_4[1]=11.76331913057+displacement[1];
+                difference_4[2]=0+displacement[2];
+
+                KRATOS_INFO("[TopOpt]") <<"  Displacement error 4: "<<displacement_error_4 <<std::endl;
+            }
+
+            //NODE number 5
+            if (counter ==29977) //(counter == 11381 || counter==11383 ||counter ==11393|| counter==11407 ||counter == 11421) //(counter == 177 || counter == 178 || counter == 182) //(counter == 2246 || counter == 2248)//(counter == 29382 || counter==29385 ||counter == 29394|| counter==29404 ||counter == 29416 || counter==29430  ) //
+            {
+                
+
+                displacement = it_node->FastGetSolutionStepValue(DISPLACEMENT);
+                displacement_error_5 = std::sqrt(std::pow(-7.60649010985585+displacement[0],2)+std::pow(6.38600432590056+displacement[1],2)+std::pow(0+displacement[2],2));
+                difference_5[0]=-7.60649010985585+displacement[0];
+                difference_5[1]=6.38600432590056+displacement[1];
+                difference_5[2]=0+displacement[2];
+
+                KRATOS_INFO("[TopOpt]") <<"  Displacement error 5: "<<displacement_error_5 <<std::endl;
+            }
+
+            //NODE number 6
+            if (counter ==77315) //(counter == 11381 || counter==11383 ||counter ==11393|| counter==11407 ||counter == 11421) //(counter == 177 || counter == 178 || counter == 182) //(counter == 2246 || counter == 2248)//(counter == 29382 || counter==29385 ||counter == 29394|| counter==29404 ||counter == 29416 || counter==29430  ) //
+            {
+
+                displacement = it_node->FastGetSolutionStepValue(DISPLACEMENT);
+                displacement_error_6 = std::sqrt(std::pow(-7.55812258995996+displacement[0],2)+std::pow(2.85005978676621+displacement[1],2)+std::pow(0+displacement[2],2));
+                difference_6[0]=-7.55812258995996+displacement[0];
+                difference_6[1]=2.85005978676621+displacement[1];
+                difference_6[2]=0+displacement[2];
+
+                KRATOS_INFO("[TopOpt]") <<"  Displacement error 6: "<<displacement_error_6 <<std::endl;
+            }
+            counter ++;
+        }
+
+        double Out = 0.0;
+
+        for( ModelPart::ElementIterator element_i = mr_structure_model_part.ElementsBegin(); element_i!= mr_structure_model_part.ElementsEnd();
+                element_i++ )
+        {
+            
+            double sensitivity = 0.0;
+
+            element_i->Calculate(DCDX_DISPLACMENT_CONTROLLED_X, Out, ConstProcessInfo);
+            element_i->Calculate(DCDX_DISPLACMENT_CONTROLLED_Y, Out_2, ConstProcessInfo);
+            element_i->Calculate(DCDX_DISPLACMENT_CONTROLLED_Z, Out_3, ConstProcessInfo);
+
+            double dcdx_controlled_x = element_i->GetValue(DCDX_DISPLACMENT_CONTROLLED_X);
+            double dcdx_controlled_y = element_i->GetValue(DCDX_DISPLACMENT_CONTROLLED_Y);
+            double dcdx_controlled_z = element_i->GetValue(DCDX_DISPLACMENT_CONTROLLED_Z);
+
+            sensitivity += 2*(difference_1[0]*(dcdx_controlled_x)+difference_1[1]*(dcdx_controlled_y)+difference_1[2]*(dcdx_controlled_z));
+            sensitivity += 2*(difference_2[0]*(dcdx_controlled_x)+difference_2[1]*(dcdx_controlled_y)+difference_2[2]*(dcdx_controlled_z));
+            sensitivity += 2*(difference_3[0]*(dcdx_controlled_x)+difference_3[1]*(dcdx_controlled_y)+difference_3[2]*(dcdx_controlled_z));
+            sensitivity += 2*(difference_4[0]*(dcdx_controlled_x)+difference_4[1]*(dcdx_controlled_y)+difference_4[2]*(dcdx_controlled_z));
+            sensitivity += 2*(difference_5[0]*(dcdx_controlled_x)+difference_5[1]*(dcdx_controlled_y)+difference_5[2]*(dcdx_controlled_z));
+            sensitivity += 2*(difference_6[0]*(dcdx_controlled_x)+difference_6[1]*(dcdx_controlled_y)+difference_6[2]*(dcdx_controlled_z));
+
+            sensitivity *= (2.0/6.0);
+            //KRATOS_INFO("[TopOpt]") <<"  Sensitivity: "<<sensitivity <<std::endl;
+            element_i->SetValue(DCDX_COMPLIANT, sensitivity);
+
+            
+        }
+
+        KRATOS_INFO("[TopOpt]") << "  Objective Function sensitivities computed  [ spent time =  " << timer.ElapsedSeconds() << " ] " << std::endl;
 
         KRATOS_CATCH("");
     }

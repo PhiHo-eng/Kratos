@@ -127,7 +127,7 @@ void SmallDisplacementSIMPElement::Calculate(const Variable<double> &rVariable, 
 {
     KRATOS_TRY
 
-    if (rVariable == DCDX || rVariable == DCDX_COMPLIANT || rVariable == LOCAL_STRAIN_ENERGY || rVariable == LOCAL_STRAIN_ENERGY_COMPLIANT)
+    if (rVariable == DCDX || rVariable == DCDX_COMPLIANT || rVariable == LOCAL_STRAIN_ENERGY || rVariable == LOCAL_STRAIN_ENERGY_COMPLIANT || rVariable == DCDX_DISPLACMENT_CONTROLLED_X  || rVariable == DCDX_DISPLACMENT_CONTROLLED_Y  || rVariable == DCDX_DISPLACMENT_CONTROLLED_Z)
     {
         // Get values
         const double E_min     = this->GetProperties()[YOUNGS_MODULUS_MIN];
@@ -160,7 +160,9 @@ void SmallDisplacementSIMPElement::Calculate(const Variable<double> &rVariable, 
             ue[3 * node_i + 0] = CurrentDisplacement[0];
             ue[3 * node_i + 1] = CurrentDisplacement[1];
             ue[3 * node_i + 2] = CurrentDisplacement[2];
-        }
+            }
+
+        
 
         if (rVariable == DCDX_COMPLIANT || rVariable == LOCAL_STRAIN_ENERGY_COMPLIANT )
         {
@@ -197,6 +199,7 @@ void SmallDisplacementSIMPElement::Calculate(const Variable<double> &rVariable, 
 
         else if (rVariable == DCDX || rVariable == LOCAL_STRAIN_ENERGY)
         {
+            
 
             // Calculate trans(ue)*Ke0*ue
             Vector intermediateVector;
@@ -218,6 +221,85 @@ void SmallDisplacementSIMPElement::Calculate(const Variable<double> &rVariable, 
 
             }
         }
+
+        else if (rVariable == DCDX_DISPLACMENT_CONTROLLED_X )
+        {
+            Vector lambda;
+            Vector lambda_controlled;
+            lambda = this->GetValue(LAMBDA_ADJOINT);
+
+            for (unsigned int node_i = 0; node_i < NumNodes; node_i++) {
+            array_1d<double, 3> &CurrentDisplacement = rGeom[node_i].FastGetSolutionStepValue(DISPLACEMENT);
+            ue[3 * node_i + 0] = CurrentDisplacement[0];
+            lambda_controlled[3* node_i +0] = lambda[3*node_i+0];
+            }
+
+            Vector intermediateVector;
+            intermediateVector.resize(NumNodes * 3);
+            intermediateVector = prod(trans(ue), Ke0);
+            double ue_Ke0_ue = inner_prod(intermediateVector, ue);
+
+            if (rVariable == DCDX_DISPLACMENT_CONTROLLED_X)
+            {
+                // Calculation of the compliance sensitivities DCDX
+                double dcdx = (-penalty)* (E_initial - E_min) * pow(x_phys, penalty - 1) * ue_Ke0_ue;
+                this->SetValue(DCDX_DISPLACMENT_CONTROLLED_X, dcdx);
+            }
+        }
+
+        else if (rVariable == DCDX_DISPLACMENT_CONTROLLED_Y )
+        {
+            Vector lambda;
+            Vector lambda_controlled;
+            lambda = this->GetValue(LAMBDA_ADJOINT);
+
+            for (unsigned int node_i = 0; node_i < NumNodes; node_i++) {
+            array_1d<double, 3> &CurrentDisplacement = rGeom[node_i].FastGetSolutionStepValue(DISPLACEMENT);
+            ue[3 * node_i + 1] = CurrentDisplacement[1];
+            lambda_controlled[3* node_i + 1] = lambda[3*node_i+1];
+            }
+
+            Vector intermediateVector;
+            intermediateVector.resize(NumNodes * 3);
+            intermediateVector = prod(trans(ue), Ke0);
+            double ue_Ke0_ue = inner_prod(intermediateVector, ue);
+
+            if (rVariable == DCDX_DISPLACMENT_CONTROLLED_Y)
+            {
+                // Calculation of the compliance sensitivities DCDX
+                double dcdx = (-penalty)* (E_initial - E_min) * pow(x_phys, penalty - 1) * ue_Ke0_ue;
+                this->SetValue(DCDX_DISPLACMENT_CONTROLLED_Y, dcdx);
+            }
+        }
+
+        else if (rVariable == DCDX_DISPLACMENT_CONTROLLED_Z )
+        {
+            Vector lambda;
+            Vector lambda_controlled;
+            lambda = this->GetValue(LAMBDA_ADJOINT);
+
+            for (unsigned int node_i = 0; node_i < NumNodes; node_i++) {
+            array_1d<double, 3> &CurrentDisplacement = rGeom[node_i].FastGetSolutionStepValue(DISPLACEMENT);
+            ue[3 * node_i + 0] = CurrentDisplacement[2];
+            lambda_controlled[3* node_i +2] = lambda[3*node_i+2];
+            }
+
+            Vector intermediateVector;
+            intermediateVector.resize(NumNodes * 3);
+            intermediateVector = prod(trans(ue), Ke0);
+            double ue_Ke0_ue = inner_prod(intermediateVector, ue);
+
+            if (rVariable == DCDX_DISPLACMENT_CONTROLLED_Z)
+            {
+                // Calculation of the compliance sensitivities DCDX
+                double dcdx = (-penalty)* (E_initial - E_min) * pow(x_phys, penalty - 1) * ue_Ke0_ue;
+                this->SetValue(DCDX_DISPLACMENT_CONTROLLED_Z, dcdx);
+            }
+        }
+
+
+
+
     } else if (rVariable == DVDX) {
 		// Calculation of the volume sensitivities DVDX
         double element_size = this->GetValue(INITIAL_ELEMENT_SIZE);
