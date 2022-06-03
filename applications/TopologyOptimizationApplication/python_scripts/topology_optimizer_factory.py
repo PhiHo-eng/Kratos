@@ -359,8 +359,8 @@ class SIMPMethod:
             self.analyzer(self.controller.get_controls(), response, opt_itr)
             
             # Filter sensitivities
-            km.Logger.Print("\n[TopOpt]:   ::[Filter Sensitivities]::")
-            self.filter_utils.ApplyFilterSensitivity(self.config["filter_type"].GetString() , self.config["optimization_process"].GetString(), self.config["filter_kernel"].GetString(), opt_itr )
+            #km.Logger.Print("\n[TopOpt]:   ::[Filter Sensitivities]::")
+            #self.filter_utils.ApplyFilterSensitivity(self.config["filter_type"].GetString() , self.config["optimization_process"].GetString(), self.config["filter_kernel"].GetString(), opt_itr )
 
             if (self.config["density_filter"].GetString() == "density"):
                 km.Logger.Print("\n[TopOpt]   ::[Filter Densities]::") 
@@ -471,7 +471,7 @@ class SIMPMethod:
                     self.io_utils.SaveOptimizationResults(self.config["restart_input_file"].GetString(), self.opt_model_part, restart_filename)
 
             # Check convergence
-            if opt_itr > 1:
+            if opt_itr > 76:
                 # Check if maximum iterations were reached
                 if(opt_itr==self.config["max_opt_iterations"].GetInt()):
                     end_time = time.time()

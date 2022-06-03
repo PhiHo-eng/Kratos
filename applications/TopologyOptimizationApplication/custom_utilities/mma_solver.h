@@ -101,7 +101,7 @@ class MMAAlgorithm
             double domain_size = 0.0;
             double max_mean_stress = 0.0;
             int solid_void = 0;
-            double move = 1;//0.05 changed 26.04.
+            double move = 0.1;//0.05 changed 26.04.
             double max_stress_sens = 0.0;
             double max_vol_constraint = 0.0;
             double max_obj_func = 0.0;
@@ -217,9 +217,9 @@ class MMAAlgorithm
                     double Xmax = 1;
                     vol_summ = vol_summ + initial_size*xval;
                     x[iteration]= xval;
-                    df[iteration]= dfdx/max_obj_func;
-                    dg[iteration*mm +0] =  initial_size/(domain_size*volfrac);
-                    dg[iteration*mm +1] = max_stress_sensitivity/50;
+                    df[iteration]= dfdx;
+                    dg[iteration*mm +0] =  initial_size;
+                    dg[iteration*mm +1] = max_stress_sensitivity;
                     xmax[iteration] = std::min(Xmax, xval+move);
                     xmin[iteration] = std::max(Xmin, xval-move);
                     iteration = iteration + 1;
@@ -232,7 +232,7 @@ class MMAAlgorithm
 
 			g[0] = 0;
 			vol_frac_iteration = vol_summ;
-			g[0] = ((vol_frac_iteration/(domain_size*volfrac))-1);
+			g[0] = ((vol_frac_iteration-(domain_size*volfrac)));
             g[1] = 0;
             g[1] = (max_mean_stress/50)-1;
             KRATOS_INFO("[TopOpt]") << "  constraint value: "<<g[1] << " max stress sens: "<< max_stress_sens<< " and minimum sens: " <<min_stress_sens<<std::endl;

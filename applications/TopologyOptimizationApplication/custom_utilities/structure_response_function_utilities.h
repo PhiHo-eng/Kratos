@@ -155,7 +155,7 @@ public:
 
         for(ModelPart::NodeIterator it_node = mr_structure_model_part.NodesBegin(); it_node != mr_structure_model_part.NodesEnd(); ++it_node )
         {
-            if (counter ==12044) //(counter == 11381 || counter==11383 ||counter ==11393|| counter==11407 ||counter == 11421) //(counter == 177 || counter == 178 || counter == 182) //(counter == 2246 || counter == 2248)//(counter == 29382 || counter==29385 ||counter == 29394|| counter==29404 ||counter == 29416 || counter==29430  ) //
+            if (counter ==1) //(counter == 11381 || counter==11383 ||counter ==11393|| counter==11407 ||counter == 11421) //(counter == 177 || counter == 178 || counter == 182) //(counter == 2246 || counter == 2248)//(counter == 29382 || counter==29385 ||counter == 29394|| counter==29404 ||counter == 29416 || counter==29430  ) //
             {
                 
                 displacement = it_node->FastGetSolutionStepValue(DISPLACEMENT);
@@ -263,7 +263,7 @@ public:
                 
 
                 displacement = it_node->FastGetSolutionStepValue(DISPLACEMENT);
-                displacement_error_3 = std::sqrt(std::pow(-4.45937342445258+displacement[0],2)+std::pow(11.8582156396755+displacement[1],2)+std::pow(0+displacement[2],2));
+                displacement_error_3 = std::sqrt(std::pow(1.05937342445258+displacement[0],2)+std::pow(0+displacement[1],2)+std::pow(0+displacement[2],2));
                 
                 KRATOS_INFO("[TopOpt]") <<"  Displacement error 3: "<<displacement_error_3 <<std::endl;
             }
@@ -311,7 +311,7 @@ public:
         epsilon += std::pow(displacement_error_5,2);
         epsilon += std::pow(displacement_error_6,2);
 
-        epsilon = (epsilon/6.0);
+        epsilon = (epsilon/1.0);
 
 
         KRATOS_INFO("[TopOpt]") <<"  Displacement calculated                [ spent time =  " << timer.ElapsedSeconds() << " ] " << std::endl;

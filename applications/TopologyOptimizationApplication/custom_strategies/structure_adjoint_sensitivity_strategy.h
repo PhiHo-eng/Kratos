@@ -220,8 +220,8 @@ public:
                 
 
                 displacement = it_node->FastGetSolutionStepValue(DISPLACEMENT);
-                displacement_error_3 = std::sqrt(std::pow(-4.45937342445258+displacement[0],2)+std::pow(11.8582156396755+displacement[1],2)+std::pow(0+displacement[2],2));
-                difference_3[0]=-4.45937342445258+displacement[0];
+                displacement_error_3 = std::sqrt(std::pow(1.05937342445258+displacement[0],2)+std::pow(0+displacement[1],2)+std::pow(0+displacement[2],2));
+                difference_3[0]=1.05937342445258+displacement[0];
                 difference_3[1]=11.8582156396755+displacement[1];
                 difference_3[2]=0+displacement[2];
 
@@ -279,13 +279,13 @@ public:
             
             double sensitivity = 0.0;
 
-            element_i->Calculate(DCDX_DISPLACMENT_CONTROLLED_X, Out, ConstProcessInfo);
-            element_i->Calculate(DCDX_DISPLACMENT_CONTROLLED_Y, Out_2, ConstProcessInfo);
-            element_i->Calculate(DCDX_DISPLACMENT_CONTROLLED_Z, Out_3, ConstProcessInfo);
+            element_i->Calculate(DCDX_COMPLIANT, Out, ConstProcessInfo);
+            element_i->Calculate(DCDX_COMPLIANT, Out_2, ConstProcessInfo);
+            element_i->Calculate(DCDX_COMPLIANT, Out_3, ConstProcessInfo);
 
-            double dcdx_controlled_x = element_i->GetValue(DCDX_DISPLACMENT_CONTROLLED_X);
-            double dcdx_controlled_y = element_i->GetValue(DCDX_DISPLACMENT_CONTROLLED_Y);
-            double dcdx_controlled_z = element_i->GetValue(DCDX_DISPLACMENT_CONTROLLED_Z);
+            double dcdx_controlled_x = element_i->GetValue(DCDX_COMPLIANT);
+            double dcdx_controlled_y = element_i->GetValue(DCDX_COMPLIANT);
+            double dcdx_controlled_z = element_i->GetValue(DCDX_COMPLIANT);
 
             sensitivity += 2*(difference_1[0]*(dcdx_controlled_x)+difference_1[1]*(dcdx_controlled_y)+difference_1[2]*(dcdx_controlled_z));
             sensitivity += 2*(difference_2[0]*(dcdx_controlled_x)+difference_2[1]*(dcdx_controlled_y)+difference_2[2]*(dcdx_controlled_z));
@@ -294,7 +294,7 @@ public:
             sensitivity += 2*(difference_5[0]*(dcdx_controlled_x)+difference_5[1]*(dcdx_controlled_y)+difference_5[2]*(dcdx_controlled_z));
             sensitivity += 2*(difference_6[0]*(dcdx_controlled_x)+difference_6[1]*(dcdx_controlled_y)+difference_6[2]*(dcdx_controlled_z));
 
-            sensitivity *= (2.0/6.0);
+            sensitivity *= (2.0/1.0);
             //KRATOS_INFO("[TopOpt]") <<"  Sensitivity: "<<sensitivity <<std::endl;
             element_i->SetValue(DCDX_COMPLIANT, sensitivity);
 

@@ -27,6 +27,8 @@
 #include "custom_utilities/structure_response_function_utilities.h"
 #include "custom_utilities/topology_filtering_utilities.h"
 #include "custom_utilities/topology_updating_utilities.h"
+#include "custom_utilities/topology_extractor_utilities.h"
+#include "custom_utilities/topology_smoothing_utilities.h"
 #include "custom_utilities/mma_solver.h"
 #include "custom_utilities/io_utilities.h"
 
@@ -78,6 +80,17 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     .def("SaveOptimizationResults", &IOUtilities::SaveOptimizationResults)
     .def("WriteSurfaceAsSTLFile", &IOUtilities::WriteSurfaceAsSTLFile)
     ;
+
+    py::class_<TopologyExtractorUtilities >(m, "TopologyExtractorUtilities")
+    .def(py::init<>())
+	.def("ExtractVolumeMesh", &TopologyExtractorUtilities::ExtractVolumeMesh)
+	.def("ExtractSurfaceMesh", &TopologyExtractorUtilities::ExtractSurfaceMesh)
+	;
+
+	py::class_<TopologySmoothingUtilities >(m, "TopologySmoothingUtilities" )
+    .def(py::init<>())
+	.def("SmoothMesh", &TopologySmoothingUtilities::SmoothMesh)
+	;
 }
 
 }  // namespace Python.

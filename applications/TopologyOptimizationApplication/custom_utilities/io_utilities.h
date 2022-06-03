@@ -125,7 +125,7 @@ public:
         FileToBeCreated << "\nBegin ElementalData X_PHYS\n";
         for(ModelPart::ElementsContainerType::iterator elem_i = rModelPart.ElementsBegin(); elem_i!=rModelPart.ElementsEnd(); elem_i++)
         {
-            FileToBeCreated << "    " << elem_i->Id() << " " << elem_i->GetValue(X_PHYS) << " and "<< elem_i->GetValue(VON_MISES_STRESS)<<"\n";
+            FileToBeCreated << "    " << elem_i->Id() << " " << elem_i->GetValue(X_PHYS) << "\n";
         }
         FileToBeCreated << "End ElementalData\n";
 
